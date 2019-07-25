@@ -1,0 +1,9 @@
+# Ignore pictures
+*.png
+# Ignore TextEditor things
+*~
+*#
+# Ignore any downloaded data
+*DATA*
+# Ignore python modules themselves, as they can be remade
+*.pyc
