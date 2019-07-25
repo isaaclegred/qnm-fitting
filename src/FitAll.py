@@ -5,9 +5,9 @@ from matplotlib import pyplot as plt
 import numpy as np
 import qnm
 from scipy.optimize import minimize, least_squares
-import SetupData
+from fitting import SetupData
 ksc = qnm.cached.KerrSeqCache(init_schw=False)
-Yl2m2 = SetupData.get_Yl2m2("SXSDATA/SXS0305Lev2/rhOverM_Asymptotic_GeometricUn\
+Yl2m2 = SetupData.get_Yl2m2("../SXSDATA/SXS0305Lev2/rhOverM_Asymptotic_GeometricUn\
 its_CoM.h5")
 sin = np.sin
 cos = np.cos

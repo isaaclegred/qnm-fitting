@@ -5,8 +5,8 @@ from matplotlib import pyplot as plt
 import numpy as np
 import qnm
 from scipy.optimize import least_squares
-import SetupData
-import SetupTrial
+from fitting import SetupData
+from fitting import SetupTrial
 ksc = qnm.cached.KerrSeqCache(init_schw=False)
 Yl2m2 = SetupData.get_Yl2m2("SXSDATA/SXS0305Lev2/rhOverM_Asymptotic_GeometricUnits_CoM.h5")
 # Use scipy.optimize.least_squares to achieve a much faster fit in the linear case
