@@ -5,7 +5,7 @@ from matplotlib import pyplot as plt
 import numpy as np
 import qnm
 from scipy.optimize import minimize, least_squares
-from fitting import SetupData
+import SetupData
 ksc = qnm.cached.KerrSeqCache(init_schw=False)
 try:
     Yl2m2 = SetupData.get_Yl2m2("/home/isaaclegred/qnm-fitting/SXSDATA0305/Lev0/rhOverM_Asymptotic_GeometricUnits_CoM.h5")
