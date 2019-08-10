@@ -61,7 +61,7 @@ def get_diff(higher_res, lower_res, offset, steps):
     noise in the simulation data.
     """
     # The maximum strain doesn't necessarily appear at the same time step in
-    # all reolutions, so we compare the data relative to the max strain
+    # all resolutions, so we compare the data relative to the max strain
     h_res_max_step, h_res_max  =  find_maxs(higher_res)
     l_res_max_step, l_res_max  =  find_maxs(lower_res)
     h_data = higher_res[ h_res_max_step - offset: h_res_max_step - offset + steps, 1:3]
@@ -90,3 +90,6 @@ def approximate_noise(data_dir, offset, steps, avg_over):
             else:
                 error_estimate[j,i] = np.std(max_diff[j : j + avg_over, i])
     return error_estimate
+def get_frames_from_offset_and_steps(strain_data, offset, steps):
+    max_step, h_res_max  =  find_maxs(strain_data)
+    return (max_step - offset, max_step - offset + steps)
