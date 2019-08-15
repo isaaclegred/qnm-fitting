@@ -11,12 +11,14 @@ try:
     Yl2m2 = SetupData.get_Yl2m2("/Users/isaaclegred/qnm-fitting/SXSDATA0305/Lev0/rhOverM_Asymptotic_GeometricUnits_CoM.h5")
 except:
    print("It's possible this file does not exist, try setting up a data directory by using GetAndSetupSXSData.sh")
-
+plot_waveforms = True
+plot_confidence_intervals = True
 sin = np.sin
 cos = np.cos
 real = np.real
 imag = np.imag
 exp = np.exp
+log = np.log
 
 # Fitting the Mass\
 # These are the parameters that must be set for the Fitting
@@ -86,14 +88,38 @@ print("Peak Strain is around 3696.37 M ")
 print("Fitting until " + str(Yl2m2[end_frame,0]) +" M")
 # Compute the best fit given the cost function
 X = least_squares(Residuals, x0 , args=(noise, signal, start_grid), ftol=20**-15, gtol = 10**-15)
-# Plot the Fitted waveform versus the waveform predicted by Numerical Relativity
-plt.plot(start_grid/X['x'][15], signal[1], '-g', label = "NR")
-plt.plot(start_grid/X['x'][15], (construct_trial(X['x'], start_grid/X['x'][15]))[1],
-         label = "Fit")
-plt.xlabel(r"time $(M)$")
-plt.ylabel(r"$h_{+}$")
-#plt.yscale("log")
-plt.legend()
-plt.savefig("FitMassAndSpin.png")
-# Also want to plot the confidence ellipse can get this by using Jacobian
-# but have to remember how
+if (plot_waveforms):
+    # Plot the Fitted waveform versus the waveform predicted by Numerical
+    # Relativity
+    plt.plot(start_grid/X['x'][15], signal[1], '-g', label = "NR")
+    plt.plot(start_grid/X['x'][15], (construct_trial(X['x'], start_grid/X['x'][15]))[1],
+    label = "Fit")
+    plt.xlabel(r"time $(M)$")
+    plt.ylabel(r"$h_{+}$")
+    #plt.yscale("log")
+    plt.legend()
+    plt.savefig("FitMassAndSpin.png")
+    plt.figure()
+if(plot_confidence_intervals):
+    J = np.matrix(X['jac'])
+    H = np.transpose(J)*J
+    Avals = np.linspace(-.01, .01, 1000)
+    Mvals = np.linspace(-.01, .01, 1000)
+    result = np.zeros((len(Avals), len(Mvals)))
+    for i in range(len(Avals)):
+        for j in range(len(Mvals)):
+            result[i,j] = H[14,14]*Avals[i]**2 + 2*H[14,15]*Avals[i]*Mvals[j] + H[15,15]*Mvals[j]**2 + X['cost']
+    print(X['cost'])
+    print(end_frame - start_frame)
+    cs = plt.contour(Mvals, Avals, log(result)/log(10),levels=10)
+    plt.ylabel(r"$a-a_{best\,\, fit}$")
+    plt.xlabel(r"$M - M_{best\,\, fit}$")
+    plt.title("Taylor Expansion of Cost function near minimum")
+    plt.clabel(cs)
+    #plt.axhline(y=0, color='r', linestyle='-')
+    #plt.axvline(x=0, color='r', linestyle='-')
+    fig = plt.gcf()
+    fig.set_size_inches(10,10)
+    # Also want to plot the confidence ellipse can get this by using Jacobian
+    # but have to remember how
+    plt.savefig("ConfidenceIntervals.png")

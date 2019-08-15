@@ -1,1 +1,1 @@
-export PYTHONPATH=$PYTHONPATH:~/qnm-fitting/src/fitting
+export PYTHONPATH=$PYTHONPATH:~/qnm-fitting/fitting
