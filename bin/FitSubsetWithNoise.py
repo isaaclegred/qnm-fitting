@@ -1,16 +1,18 @@
 #!/usr/bin/env python
+import SetupData
+from scipy.optimize import minimize, least_squares
+import qnm
+import numpy as np
+from matplotlib import pyplot as plt
 import matplotlib as mpl
 mpl.use('Agg')
-from matplotlib import pyplot as plt
-import numpy as np
-import qnm
-from scipy.optimize import minimize, least_squares
-import SetupData
 ksc = qnm.cached.KerrSeqCache(init_schw=False)
 try:
-    Yl2m2 = SetupData.get_Yl2m2("/Users/isaaclegred/qnm-fitting/SXSDATA0305/Lev0/rhOverM_Asymptotic_GeometricUnits_CoM.h5")
+    Yl2m2 = SetupData.get_Yl2m2(
+    "/Users/isaaclegred/qnm-fitting/SXSDATA0305/Lev0/rhOverM_Asymptotic_GeometricUnits_CoM.h5")
 except:
-   print("It's possible this file does not exist, try setting up a data directory by using GetAndSetupSXSData.sh")
+    print("It's possible this file does not exist, try setting up a data directo\
+ry by using GetAndSetupSXSData.sh")
 plot_waveforms = True
 plot_confidence_intervals = True
 sin = np.sin
@@ -24,7 +26,7 @@ log = np.log
 # These are the parameters that must be set for the Fitting
 # NONLINEAR FITTING SPIN
 offset = 10
-steps  = 750
+steps = 750
 start_and_end_frame = \
     SetupData.get_frames_from_offset_and_steps(Yl2m2, offset, steps)
 start_frame = start_and_end_frame[0]
@@ -36,13 +38,16 @@ numparams = 16
 A = .75
 M = 1
 
-# Get the time grid the problem will be analyzed on, note that part of
-# fitting the mass of the black hole means changing the physical values
-# of the time at the time points, but topologically the grid stays the same
-start_grid = Yl2m2[start_frame : end_frame, 0] - Yl2m2[start_frame, 0]*np.ones(Yl2m2[start_frame:end_frame,0].size)
-# Get the target signal for the fitting
-signal = np.stack((Yl2m2[start_frame:end_frame,2] , Yl2m2[start_frame:end_frame,1]))
-noise = SetupData.approximate_noise("/Users/isaaclegred/qnm-fitting/SXSDATA0305", offset,steps, 10)
+# Change which of the points are included in the grid and signal.
+# included_points should be some subset of range(start_frame, end_frame)
+included_points = SetupData.sample_with_distribution(1/(1+ .01*np.arange(steps)), 375, start_frame, end_frame)
+subset_Yl2m2 = SetupData.get_data_subset(Yl2m2, included_points)
+start_grid = subset_Yl2m2[:, 0] - \
+    subset_Yl2m2[0, 0]*np.ones(subset_Yl2m2[:, 0].size)
+signal = np.stack((subset_Yl2m2[:, 2],
+                   subset_Yl2m2[:, 1]))
+noise = SetupData.approximate_noise_of_subset("/Users/isaaclegred/qnm-fitting/SXSDATA0305",
+                                               offset, steps, 10, included_points)
 # Construct a list of test functions to be used for the fitting
 def get_test_funcs(A, grid):
     test_funcs = []
@@ -87,7 +92,7 @@ print("Fitting starting at time " + str(Yl2m2[start_frame, 0]) + " M")
 print("Peak Strain is around 3696.37 M ")
 print("Fitting until " + str(Yl2m2[end_frame,0]) +" M")
 # Compute the best fit given the cost function
-X = least_squares(Residuals, x0 , args=(noise, signal, start_grid), ftol=20**-15, gtol = 10**-15)
+X = least_squares(Residuals, x0 , args=(noise, signal, start_grid), ftol=20**-14, gtol = 10**-15)
 if (plot_waveforms):
     # Plot the Fitted waveform versus the waveform predicted by Numerical
     # Relativity
@@ -110,7 +115,7 @@ if(plot_confidence_intervals):
         for j in range(len(Mvals)):
             result[i,j] = H[14,14]*Avals[i]**2 + 2*H[14,15]*Avals[i]*Mvals[j] + H[15,15]*Mvals[j]**2 + X['cost']
     print(X['cost'])
-    print(end_frame - start_frame)
+    print(len(included_points))
     cs = plt.contour(Mvals, Avals, log(result)/log(10),levels=10)
     plt.ylabel(r"$a-a_{best\,\, fit}$")
     plt.xlabel(r"$M - M_{best\,\, fit}$")
