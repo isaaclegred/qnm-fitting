@@ -8,9 +8,9 @@ from scipy.optimize import minimize, least_squares
 import SetupData
 ksc = qnm.cached.KerrSeqCache(init_schw=False)
 try:
-    Yl2m2 = SetupData.get_Yl2m2("/home/isaaclegred/qnm-fitting/SXSDATA0305/Lev0/rhOverM_Asymptotic_GeometricUnits_CoM.h5")
+    Yl2m2 = SetupData.get_Yl2m2("/Users/isaaclegred/qnm-fitting/SXSDATA0305/Lev0/rhOverM_Asymptotic_GeometricUnits_CoM.h5")
 except:
-    "It's possible this file does not exist, try setting up a data
+    "It's possible this file does not exist, try setting up a data \
     by using GetAndSetupSXSData.sh "
 
 sin = np.sin
@@ -77,6 +77,7 @@ print("Peak Strain is around 3696.37 M ")
 print("Fitting until " + str(Yl2m2[end_frame,0]) +" M")
 # Compute the best fit given the cost function
 X = least_squares(Residuals, x0 , args=(signal, start_grid), ftol=20**-15, gtol = 10**-15)
+print("x = ",  X["x"])
 # Plot the Fitted waveform versus the waveform predicted by Numerical Relativity
 plt.plot(start_grid/X['x'][15], signal[1], '-g', label = "NR")
 plt.plot(start_grid/X['x'][15], (construct_trial(X['x'], start_grid/X['x'][15]))[1],

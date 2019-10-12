@@ -60,19 +60,27 @@ def get_test_funcs(A, grid):
             else :
                 test_funcs.append(cos(real(freq)*grid)*exp(imag(freq)*grid))
     return test_funcs
-# Define residuals
+
 def Residuals(x, noise,  params0, params2):
-    cost = 0;
     target = params0
     grid = params2/x[15]
     trial = construct_trial(x, grid)
-    residuals = np.zeros((2*len(grid)))
-    flattened_noise = np.zeros((2*len(grid)))
-    for i in range(grid.size):
-        for j in range(0,2):
-            residuals[2*i+j] = (target[j,i]- trial[j,i])
-            flattened_noise[2*i+j]  =  noise[i,j]
+    residuals = np.concatenate([target[0, :] - trial[0, :], target[1, :] - trial[1, :]])
+    flattened_noise = np.concatenate([noise[:, 0], noise[:, 1]])
     return residuals/flattened_noise
+
+# Define residuals
+# def Residuals(x, noise,  params0, params2):
+#     target = params0
+#     grid = params2/x[15]
+#     trial = construct_trial(x, grid)
+#     residuals = np.zeros((2*len(grid)))
+#     flattened_noise = np.zeros((2*len(grid)))
+#     for i in range(grid.size):
+#         for j in range(0,2):
+#             residuals[2*i+j] = (target[j,i]- trial[j,i])
+#             flattened_noise[2*i+j]  =  noise[i,j]
+#     return residuals/flattened_noise
 # Define the way the parameters to be fit are used to construct a trial
 # solution to compare to the analytic solution.
 def construct_trial(x, grid):

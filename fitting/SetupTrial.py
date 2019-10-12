@@ -10,7 +10,8 @@ exp = np.exp
 
 def get_test_funcs(A, grid):
     """
-    Construct the analytic QNM's of a black hole with dimless spin A
+    Construct the analytic QNM's of a black hole with dimless spin A, evaluated at the
+    times contained in grid.
     """
     ksc = qnm.cached.KerrSeqCache(init_schw=False)
     test_funcs = []
@@ -33,7 +34,30 @@ def construct_trial(x, test_func):
         trial += np.stack((x[2*i]*test_func[2*i] - x[2*i+1]*test_func[2*i+1],
         x[2*i+1]*test_func[2*i] + x[2*i]*test_func[2*i+1]))
     return trial
-
+def construct_trial_from_grid(x, grid):
+    """
+    Given fitting parameters `x` and known QNM's `test_func` return the
+    trial waveform which will be used to compare to the signal data.
+    """
+    A = x[14]
+    test_func = get_test_funcs(A, grid)
+    trial = np.zeros((2,len(test_func[0])) )
+    for i in range(7):
+        trial += np.stack((x[2*i]*test_func[2*i] - x[2*i+1]*test_func[2*i+1],
+                           x[2*i+1]*test_func[2*i] + x[2*i]*test_func[2*i+1]) )
+    return trial
+def construct_complex_trial_from_grid(x, grid):
+    """
+    Given fitting parameters `x` and known QNM's `test_func` return the
+    trial waveform which will be used to compare to the signal data.
+    """
+    A = x[14]
+    test_func = get_test_funcs(A, grid)
+    trial = np.zeros((len(test_func[0])), dtype=np.complex128 )
+    for i in range(7):
+        trial += x[2*i]*test_func[2*i] - x[2*i+1]*test_func[2*i+1] + 1j*(
+                           x[2*i+1]*test_func[2*i] + x[2*i]*test_func[2*i+1])
+    return trial
 
 def construct_flattened_trial(x, test_func):
     """
