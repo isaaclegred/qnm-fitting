@@ -7,3 +7,7 @@
 *DATA*
 # Ignore python modules themselves, as they can be remade
 *.pyc
+# Igonre .DS
+*.DS*
+# Ignore build directories
+*Build*

@@ -1,0 +1,5 @@
+cmake_minimum_required(VERSION 3.0)
+project(VarPro)
+add_executable(output test_Fitsep.cpp)
+SET(CMAKE_CXX_FLAGS "-std=c++14")
+include_directories(../includes)
