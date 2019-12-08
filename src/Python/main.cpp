@@ -19,26 +19,26 @@
 namespace bp = boost::python;
 namespace np = boost::python::numpy;
 // // Get the shape of a numpy array
-std::vector<size_t> get_shape(const np::ndarray& A);
-//   std::vector<size_t> Shape;
-//   for(size_t i = 0; i < A.get_nd(); i++)
-//     Shape.push_back(A.shape(i));
-//   return Shape;
-// }
+std::vector<size_t> get_shape(const np::ndarray& A){
+  std::vector<size_t> Shape;
+  for(size_t i = 0; i < A.get_nd(); i++)
+    Shape.push_back(A.shape(i));
+  return Shape;
+}
 // // Get the size (as in the length of the A.data()) of an numpy array
-size_t get_size(const np::ndarray& A);
-//   auto shape = get_shape(A);
-//   return  std::accumulate(shape.begin(), shape.end(), 1, std::multiplies<>() );
-// }
-// // Get a vectorf from a numpy array
-VecDoub get_vector_from_np(np::ndarray& A);
-//   VecDoub v(get_size(A));
-//   auto data = A.get_data();
-//   for(size_t j = 0; j < v.size(); ++j){
-//     v[j] = data[j];
-//   }
-//   return v;
-// }
+size_t get_size(const np::ndarray& A){
+  auto shape = get_shape(A);
+  return  std::accumulate(shape.begin(), shape.end(), 1, std::multiplies<>() );
+}
+// Get a vectorf from a numpy array
+VecDoub get_vector_from_np(np::ndarray& A){
+  VecDoub v(get_size(A));
+  auto data = A.get_data();
+  for(size_t j = 0; j < v.size(); ++j){
+    v[j] = data[j];
+  }
+  return v;
+}
 
 int main(){
   int arr_size = 5;

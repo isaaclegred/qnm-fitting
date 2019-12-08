@@ -161,4 +161,3 @@ BOOST_PYTHON_MODULE(mylib){
   Py_Initialize();
   np::initialize();
 }
-B
