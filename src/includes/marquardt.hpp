@@ -7,7 +7,7 @@ struct Marquardt {
 /*240001*/
   Int n, m, mfit;
   /*540020 1 2 2 2*/
-  VecDoub_I &x,&y,&sig;
+  VecDoub_I x,y,sig;
   T funcs;
   Doub tol;
   VecBool ia;
