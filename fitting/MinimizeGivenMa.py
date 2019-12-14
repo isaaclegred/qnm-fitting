@@ -16,8 +16,13 @@ def minimize_given_mass_and_spin(strain_data, A =.75, M = 1):
     Return the best fit  associated with fitting to the `strain_data`
     signal using a = `A` and M = `M`
     """
-    start_frame = 12383
-    end_frame = 13200
+    offset = 10
+    max_frame, max_val=  SetupData.find_maxs(strain_data)
+    num_steps  = 500
+    start_frame, end_frame = \
+            SetupData.get_frames_from_offset_and_steps(strain_data,
+                                                       offset,
+                                                       num_steps)
     # The the number of parameters, 2 times the number of modes
     numparams = 14
     # Get the time grid the problem will be analyzed on
@@ -29,7 +34,7 @@ def minimize_given_mass_and_spin(strain_data, A =.75, M = 1):
     test_funcs = []
     for i in range(7):
         for j in (True, False):
-            mode_seq = ksc(s = -2, l = 2, m = 2, n = i)
+            mode_seq = ksc(s = -2, l = 2, m = -2, n = i)
             freq = mode_seq(a = A)[0]
             if j:
                 test_funcs.append(sin(real(freq)*this_grid)*exp(imag(freq)*this_grid))
