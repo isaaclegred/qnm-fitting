@@ -21,10 +21,19 @@ def fit_qnm_modes_to_signal(data_dir, offset, num_steps, num_modes=7,
                             include_noise=False, plot_confidence_intervals=False,
                             plot_waveforms=True, target_spin=None,
                             target_mass=None):
+     # We will tolerate both having and not having a `/` at the end of data_dir
+    slash = ""
+    if data_dir[-1] != '/':
+        slash += "/"
     try:
-        Yl2m2 = SetupData.get_Yl2m2(data_dir + "/Lev" + str(resolution_level) + \
+
+        Yl2m2 = SetupData.get_Yl2m2(data_dir + slash + "Lev" + str(resolution_level) + \
                                     "/rhOverM_Asymptotic_GeometricUnits_CoM.h5")
     except:
+        print(data_dir[-1])
+        print(slash)
+        print(data_dir + slash + "Lev" + str(resolution_level) + \
+                                    "/rhOverM_Asymptotic_GeometricUnits_CoM.h5")
         print("It's possible this file does not exist, try setting up a data directory by using G\
         etAndSetupSXSData.sh")
     start_and_end_frame = SetupData.get_frames_from_offset_and_steps(Yl2m2, offset, num_steps)
@@ -79,6 +88,7 @@ def fit_qnm_modes_to_signal(data_dir, offset, num_steps, num_modes=7,
     print("Peak Strain is around 3696.37 M ")
     print("Fitting until " + str(Yl2m2[end_frame,0]) +" M")
     # Compute the best fit given the cost function
+
     X = least_squares(Residuals, x0 , args=(noise, signal, start_grid), ftol=20**-14, gtol = 10**-15)
     if (plot_waveforms):
         # Plot the Fitted waveform versus the waveform predicted by Numerical
@@ -178,7 +188,7 @@ def global_parse_args():
     )
     parser.add_argument(
         "--include-noise",
-        help="Whether to attempt to esitmate errors using numerical noise from the simulation",
+        help="Whether to attempt to esitmate errors using a model of injected LIGO noise",
         type=bool,
         dest='include_noise',
         default=True
