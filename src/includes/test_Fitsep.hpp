@@ -1,7 +1,7 @@
 #pragma once
 // Needed by Recipe being tested
-#include "marquardt.h"
-#include "sep_marquardt.h"
+#include "marquardt.hpp"
+#include "sep_marquardt.hpp"
 #include "fgauss_sep.h"
 
 // Needed only by test routine
