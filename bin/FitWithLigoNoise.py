@@ -63,6 +63,7 @@ def fit_qnm_modes_to_signal(data_dir, offset, num_steps, num_modes=7,
         signal  += noise
     else:
         noise = np.ones((len(included_points)))
+    # Fitting Procedure
     # Define residuals (the quantites which when squared and summed give the cost)
     def Residuals(x, noise,  params0, params2):
         target = params0

@@ -19,7 +19,9 @@ def get_Yl2m2(file_name):
     '''
     h5file = h5py.File(file_name, 'r')
     YLMs = h5file['Extrapolated_N2.dir']
+
     Yl2m2 = YLMs['Y_l2_m2.dat']
+    Yl2m_2 = YLMs['Y_l2_m2']
     Yl2m2_data = np.asarray(Yl2m2)
     h5file.close()
     return Yl2m2_data

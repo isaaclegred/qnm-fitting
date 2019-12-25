@@ -36,7 +36,7 @@
 # Anaconda with python 3, and then use this to call this script
 
 # Set which simulations will have their data downloaded
-Simulations  = ['SXS:BBH:1419', 'SXS:BBH:0177']
+Simulations  = ['SXS:BBH:0305']
 
 # For downloading data
 import sxs
