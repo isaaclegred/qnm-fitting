@@ -162,14 +162,13 @@ def sample_with_distribution(P, numsamples,  start_frame, end_frame):
                                      replace=False, p=P )
     samples.sort()
     return samples
-def get_included_points(start_frame, end_frame, max_frame, sampling_routine,
-                        num_samples):
+def get_included_points(start_frame, end_frame, max_frame, sampling_routine):
     steps = end_frame - start_frame
     if (sampling_routine == "Start-heavy"):
         P = 1/(1+ .01*np.arange(steps))
-        return SetupData.sample_with_distribution(P, num_samples, start_frame, end_frame)
+        return sample_with_distribution(P, int(steps/2), start_frame, end_frame)
     if (sampling_routine == "Every-other"):
-        included_points = (np.arange(start_frame, end_frame))[::2]
+        return  (np.arange(start_frame, end_frame))[::2]
 #  The distance given, R, is the estimated distance 150914 in units of
 #  masses of 150914, it will scale linearly with edistnace and inversely
 #  with black hole mass.  This is necessary because everything internally is
@@ -201,7 +200,7 @@ def ligo_noise_of_subset(data_dir, offset, num_steps, included_points,
         # 1/M we need to multiply by \sqrt(1/M)/\sqrt(hz), which is the squae
         # root of the thing we just computed
         error_source  = error_source/np.sqrt(error_source)
-    noise  = np.random.normal(0, scale=error_source, size=(num_steps))
+    noise  = np.random.normal(0, scale=error_source, size=(len(included_points)))
     return noise
 def ligo_noise_stacked(data_dir, offset, num_steps, included_points,
                          convert, bh_mass,R=1.24*10**20):
@@ -215,5 +214,5 @@ def ligo_noise_stacked(data_dir, offset, num_steps, included_points,
                                   1])
     error_source =  error_source**(1/2)*R
     print(error_source)
-    noise  = 1/np.sqrt(2)*np.random.normal(0, scale=error_source, size=(2, num_steps))
+    noise  = 1/np.sqrt(2)*np.random.normal(0, scale=error_source, size=(2, len(included_points)))
     return noise

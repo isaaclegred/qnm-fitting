@@ -69,12 +69,16 @@ def fit_qnm_modes_to_signal(data_dir, offset, num_steps, num_modes=7,
     x0 = np.ones(numparams)
     x0[14] = A
     x0[15] = M
+    lowerbounds =  [-np.inf]*14
+    lowerbounds  = lowerbounds + [0,0]
+    upperbounds  =  [np.inf]*14
+    upperbounds  = upperbounds + [1, np.inf]
     # Actual fitting
     print("Fitting starting at time " + str(Yl2m2[start_frame, 0]) + " M")
     print("Peak Strain is around 3696.37 M ")
     print("Fitting until " + str(Yl2m2[end_frame,0]) +" M")
     # Compute the best fit given the cost function
-    X = least_squares(Residuals, x0 , args=(noise, signal, start_grid), ftol=20**-14, gtol = 10**-15)
+    X = least_squares(Residuals, x0 , args=(noise, signal, start_grid), bounds = (lowerbounds, upperbounds), ftol=20**-14, gtol = 10**-15)
     if (plot_waveforms):
         # Plot the Fitted waveform versus the waveform predicted by Numerical
         # Relativity
@@ -99,7 +103,7 @@ def fit_qnm_modes_to_signal(data_dir, offset, num_steps, num_modes=7,
                     H[15,15]*Mvals[j]**2 + X['cost']
         print(X['cost'])
         print(len(included_points))
-        cs = plt.contour(Mvals, Avals, log(result)/log(10),levels=10)
+        cs = plt.contour(Mvals + X["x"][15], Avals + X["x"][14], log(result)/log(10),levels=10)
         plt.ylabel(r"$a-a_{best\,\, fit}$")
         plt.xlabel(r"$M - M_{best\,\, fit}$")
         plt.title("Taylor Expansion of Cost function near minimum")

@@ -4,9 +4,10 @@ import SetupTrial
 from scipy.optimize import minimize, least_squares
 import qnm
 import numpy as np
-from matplotlib import pyplot as plt
 import matplotlib as mpl
 mpl.use('Agg')
+from matplotlib import pyplot as plt
+
 # Some useful definitons to shorten the code
 sin = np.sin
 cos = np.cos
@@ -21,10 +22,19 @@ def fit_qnm_modes_to_signal(data_dir, offset, num_steps, num_modes=7,
                             include_noise=False, plot_confidence_intervals=False,
                             plot_waveforms=True, target_spin=None,
                             target_mass=None):
+     # We will tolerate both having and not having a `/` at the end of data_dir
+    slash = ""
+    if data_dir[-1] != '/':
+        slash += "/"
     try:
-        Yl2m2 = SetupData.get_Yl2m2(data_dir + "/Lev" + str(resolution_level) + \
+
+        Yl2m2 = SetupData.get_Yl2m2(data_dir + slash + "Lev" + str(resolution_level) + \
                                     "/rhOverM_Asymptotic_GeometricUnits_CoM.h5")
     except:
+        print(data_dir[-1])
+        print(slash)
+        print(data_dir + slash + "Lev" + str(resolution_level) + \
+                                    "/rhOverM_Asymptotic_GeometricUnits_CoM.h5")
         print("It's possible this file does not exist, try setting up a data directory by using G\
         etAndSetupSXSData.sh")
     start_and_end_frame = SetupData.get_frames_from_offset_and_steps(Yl2m2, offset, num_steps)
@@ -36,13 +46,8 @@ def fit_qnm_modes_to_signal(data_dir, offset, num_steps, num_modes=7,
     numparams = 2*num_modes + 2
     # The initial dimensionless spin of the black hole to use
     # to generate the modes, will be minimized
-    A = .75
-    M = 1
-    # Get the time grid the problem will be analyzed on, note that part of
-    # fitting the mass of the black hole means changing the physical values
-    # of the time at the time points, but topologically the grid stays the same
-    start_grid = Yl2m2[start_frame : end_frame, 0] - Yl2m2[start_frame, 0]*np.ones(Yl2m2[
-        start_frame:end_frame,0].size)
+    A = .3
+    M = .99
     # If a sampling routine for the points is specified, get the a subset of the points
     # sampled using the routine, otherwise, use all the points in [start_frame, end_frame)
     if (sampling_routine):
@@ -50,17 +55,20 @@ def fit_qnm_modes_to_signal(data_dir, offset, num_steps, num_modes=7,
     else:
         included_points = np.arange(start_frame, end_frame)
     subset_Yl2m2 = SetupData.get_data_subset(Yl2m2, included_points)
+    # Get the time grid the problem will be analyzed on, note that part of
+    # fitting the mass of the black hole means changing the physical values
+    # of the time at the time points, but topologically the grid stays the same
     start_grid = subset_Yl2m2[:, 0] - \
         subset_Yl2m2[0, 0]*np.ones(subset_Yl2m2[:, 0].size)
     signal = np.stack((subset_Yl2m2[:, 2],
                        subset_Yl2m2[:, 1]))
 
     if (include_noise):
-        noise = 2000*SetupData.ligo_noise_stacked(data_dir, offset, num_steps, included_points,
+        noise = SetupData.ligo_noise_stacked(data_dir, offset, num_steps, included_points,
                                    True, 65)
         print ("signal shape is", signal.shape)
         print (" noise shape is",  noise.shape)
-        signal  += noise
+        signal  += 10*noise
     else:
         noise = np.ones((len(included_points)))
     # Fitting Procedure
@@ -75,12 +83,17 @@ def fit_qnm_modes_to_signal(data_dir, offset, num_steps, num_modes=7,
     x0 = np.ones(numparams)
     x0[14] = A
     x0[15] = M
+    lowerbounds =  [-25]*14
+    lowerbounds  = lowerbounds + [0,0]
+    upperbounds  =  [25]*14
+    upperbounds  = upperbounds + [.999, 1]
     # Actual fitting
     print("Fitting starting at time " + str(Yl2m2[start_frame, 0]) + " M")
-    print("Peak Strain is around 3696.37 M ")
+    print("Peak Strain is around",Yl2m2[max_frame, 0] ,"M")
     print("Fitting until " + str(Yl2m2[end_frame,0]) +" M")
     # Compute the best fit given the cost function
-    X = least_squares(Residuals, x0 , args=(noise, signal, start_grid), ftol=20**-14, gtol = 10**-15)
+
+    X = least_squares(Residuals, x0 , args=(noise, signal, start_grid), bounds = (lowerbounds, upperbounds))
     if (plot_waveforms):
         # Plot the Fitted waveform versus the waveform predicted by Numerical
         # Relativity
@@ -96,9 +109,9 @@ def fit_qnm_modes_to_signal(data_dir, offset, num_steps, num_modes=7,
         plt.savefig("FitMassAndSpin.png")
         plt.figure()
     if(plot_confidence_intervals):
-        if (target_spin != None):
+        if (target_spin):
            plt.axhline(X["x"][14] - target_spin, "r")
-        if(target_mass != None):
+        if(target_mass):
            plt.axvline(X["x"][15] - target_mass, "r")
         J = np.matrix(X['jac'])
         H = np.transpose(J)*J
@@ -164,8 +177,11 @@ def global_parse_args():
     )
     parser.add_argument(
         "--sampling-routine",
-        help="If not None, then instead of using the whole data consisting of num_steps steps, it will " +\
-        "sample num_samples samples from the points, using the sampling routine given by sampling_routine",
+        help="If not None, then instead of using the whole data consisting of " \
+        + "num_steps steps, it will sample" +\
+        " `num_samples` samples from the points, using the sampling routine given "\
+        + "sampling_routine, possible options include `Every-other` and `Start-heavy`"\
+        +" (for picking more values near the start for the analysis)",
         type=str,
         dest='sampling_routine',
         default=None
@@ -179,7 +195,7 @@ def global_parse_args():
     )
     parser.add_argument(
         "--include-noise",
-        help="Whether to attempt to esitmate errors using numerical noise from the simulation",
+        help="Whether to attempt to esitmate errors using a model of injected LIGO noise",
         type=bool,
         dest='include_noise',
         default=True
