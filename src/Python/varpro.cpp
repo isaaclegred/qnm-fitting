@@ -21,8 +21,8 @@
 namespace bp = boost::python;
 namespace np = boost::python::numpy;
 
-using varpro = Sep_marquardt<fgauss>;
-
+using varpro = Sep_marquardt<fitting_fun>;
+// using varpro =  Sep_marquardt<fgauss>;
 // Get the shape of a numpy array
 std::vector<size_t> get_shape(const np::ndarray& A){
   std::vector<size_t> Shape;
@@ -60,33 +60,44 @@ np::ndarray get_np_from_vector(const std::vector<double>& v){
 }
 varpro get_marquardt(np::ndarray& xxa, np::ndarray& yya,
                     np::ndarray& ssiga, np::ndarray& aaa,
-                    fgauss f,
+                    fitting_fun f,
                     const int pp,  const double TOL=1.e-1) noexcept{
+  std::cout << "there are " << get_size(aaa) <<" nonlinear params " <<"\n";
     return varpro(get_vector_from_np(xxa),
                          get_vector_from_np(yya),
                          get_vector_from_np(ssiga),
                          get_vector_from_np(aaa),
                          f, pp);
-}
 
+}
+// varpro get_marquardt_gauss(np::ndarray& xxa, np::ndarray& yya,
+//                     np::ndarray& ssiga, np::ndarray& aaa,
+//                     fgauss f,
+//                     const int pp,  const double TOL=1.e-1) noexcept{
+//   std::cout << "there are " << get_size(aaa) <<" nonlinear params " <<"\n";
+//     return varpro(get_vector_from_np(xxa),
+//                          get_vector_from_np(yya),
+//                          get_vector_from_np(ssiga),
+//                          get_vector_from_np(aaa),
+//                   f, pp);}
 
 BOOST_PYTHON_MODULE(mylib){
-    // bp::def("get_marquardt", +[](double time, np::ndarray& xxa, np::ndarray& yya,
-    //                            np::ndarray& ssiga, np::ndarray& aaa, const int pp){
-    //                           auto times = get_vector_from_np(xxa);
-    //                           auto v = get_vector_from_np(xxa);
-    //                           for(auto element : v){std::cout << element << "\n";}
-    //                           return get_marquardt(xxa, yya, ssiga, aaa,
-    //                                                fitting_fun(time), pp);
-    //                         });
-  bp::def("get_marquardt_gauss", +[](np::ndarray& xxa, np::ndarray& yya,
+      bp::def("get_marquardt", +[](double time, np::ndarray& xxa, np::ndarray& yya,
                                np::ndarray& ssiga, np::ndarray& aaa, const int pp){
                               auto times = get_vector_from_np(xxa);
                               auto v = get_vector_from_np(xxa);
-                              for(auto element : v){std::cout << element << "\n";}
+                              std::cout << "gettting a marquardt" << "\n";
                               return get_marquardt(xxa, yya, ssiga, aaa,
-                                                   fgauss(), pp);
-                            });
+                                                   fitting_fun(time), pp);
+                               });
+  // bp::def("get_marquardt_gauss", +[](np::ndarray& xxa, np::ndarray& yya,
+  //                              np::ndarray& ssiga, np::ndarray& aaa, const int pp){
+  //                             auto times = get_vector_from_np(xxa);
+  //                             auto v = get_vector_from_np(xxa);
+  //                             for(auto element : v){std::cout << element << "\n";}
+  //                             return get_marquardt_gauss(xxa, yya, ssiga, aaa,
+  //                                                  fgauss(), pp);
+  //                            });
    bp::def("get_numpy", +[](np::ndarray& input) -> np::ndarray {
                           int arr_size = get_size(input);
                           std::cout << arr_size << '\n';

@@ -3,7 +3,7 @@
 #include "nr3devel.h"
 #include "svd.h"
 #include "marquardt.hpp"
-
+#include "vectorhelpers.hpp"
 /*NR3BEG sep_marquardt*/
 // This class is now templated on a functor `T`, which must overload the function `void operator()`
 // with arguments `(const Doub t, VecDoub_I & params, Doub & f_eval, VecDoub_O &jac)`, and with
@@ -61,6 +61,7 @@ struct Sep_marquardt : Marquardt<T> {
                   funcs(x[i],a,u,duda);
                   /*590010 4 5 5 5*/
                   tmp=1.0/sig[i];
+                  //std::cout << "sig["<< i << "] is" << sig[i] << "\n";
                   sum=0.0;
                   for (l=0,j=0;j<p;j++) {
                     if (ic[j])
@@ -71,6 +72,7 @@ struct Sep_marquardt : Marquardt<T> {
                       sum += c[j]*u[j];
                   }
                   b[i]=(y[i]-sum)*tmp;
+                  //std::cout << "b[" << i << "] is"  << b[i] << "\n";
 		}
 		SVD svd(au);
                 /*590013 4 5 5 5*/

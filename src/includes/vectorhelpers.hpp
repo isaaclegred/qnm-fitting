@@ -1,3 +1,4 @@
+#pragma once
 #include "nr3devel.h"
 #include "numeric"
 
@@ -23,4 +24,11 @@ namespace vec{
     }
     return t;
   }
+  void print(VecDoub v){
+    for(auto element : v){
+      std::cout << element  << ", ";
+    }
+    std::cout << "\n";
+  }
+
 } // namespace vec

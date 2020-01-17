@@ -4,10 +4,9 @@ import SetupTrial
 from scipy.optimize import minimize, least_squares
 import qnm
 import numpy as np
-import matplotlib as mpl
-mpl.use('Agg')
 from matplotlib import pyplot as plt
-
+import matplotlib as mpl
+import mylib
 # Some useful definitons to shorten the code
 sin = np.sin
 cos = np.cos
@@ -15,28 +14,20 @@ real = np.real
 imag = np.imag
 exp = np.exp
 log = np.log
+
 # This is an executable designed to be used to fit QNM to gravitational wave signals,
 # see the options below to see what options are available for the fitting.
 def fit_qnm_modes_to_signal(data_dir, offset, num_steps, num_modes=7,
-                            resolution_level=6,sampling_routine=None, num_samples=None,
+                            resolution_level=6,sampling_routine=None, num_samples =None,
                             include_noise=False, plot_confidence_intervals=False,
                             plot_waveforms=True, target_spin=None,
                             target_mass=None):
-     # We will tolerate both having and not having a `/` at the end of data_dir
-    slash = ""
-    if data_dir[-1] != '/':
-        slash += "/"
     try:
-
-        Yl2m2 = SetupData.get_Yl2m2(data_dir + slash + "Lev" + str(resolution_level) + \
-                                    "/rhOverM_Asymptotic_GeometricUnits_CoM.h5")
+        Yl2m2 = SetupData.get_Yl2m2(data_dir + "/Lev" + str(resolution_level) +"/rhOverM_Asymptotic_GeometricUnits_CoM.h5")
     except:
-        print(data_dir[-1])
-        print(slash)
-        print(data_dir + slash + "Lev" + str(resolution_level) + \
-                                    "/rhOverM_Asymptotic_GeometricUnits_CoM.h5")
-        print("It's possible this file does not exist, try setting up a data directory by using G\
-        etAndSetupSXSData.sh")
+        print(data_dir + "/Lev" + str(resolution_level) +\
+"/rhOverM_Asymptotic_GeometricUnits_CoM.h5")
+        print("It's possible this file does not exist, try setting up a data directory by using GetAndSetupSXSData.sh")
     start_and_end_frame = SetupData.get_frames_from_offset_and_steps(Yl2m2, offset, num_steps)
     start_frame = start_and_end_frame[0]
     end_frame = start_and_end_frame[1]
@@ -44,10 +35,11 @@ def fit_qnm_modes_to_signal(data_dir, offset, num_steps, num_modes=7,
     ksc = qnm.cached.KerrSeqCache(init_schw=False)
     # The the number of parameters, 2 times the number of modes + Nonlinear params
     numparams = 2*num_modes + 2
-    # The initial dimensionless spin of the black hole to use
-    # to generate the modes, will be minimized
-    A = .3
-    M = .99
+    # Get the time grid the problem will be analyzed on, note that part of
+    # fitting the mass of the black hole means changing the physical values
+    # of the time at the time points, but topologically the grid stays the same
+    start_grid = Yl2m2[start_frame : end_frame, 0] - Yl2m2[start_frame, 0]*np.ones(Yl2m2[
+        start_frame:end_frame,0].size)
     # If a sampling routine for the points is specified, get the a subset of the points
     # sampled using the routine, otherwise, use all the points in [start_frame, end_frame)
     if (sampling_routine):
@@ -55,86 +47,37 @@ def fit_qnm_modes_to_signal(data_dir, offset, num_steps, num_modes=7,
     else:
         included_points = np.arange(start_frame, end_frame)
     subset_Yl2m2 = SetupData.get_data_subset(Yl2m2, included_points)
-    # Get the time grid the problem will be analyzed on, note that part of
-    # fitting the mass of the black hole means changing the physical values
-    # of the time at the time points, but topologically the grid stays the same
     start_grid = subset_Yl2m2[:, 0] - \
         subset_Yl2m2[0, 0]*np.ones(subset_Yl2m2[:, 0].size)
-    signal = np.stack((subset_Yl2m2[:, 2],
-                       subset_Yl2m2[:, 1]))
+    signal = np.stack((subset_Yl2m2[:, 2], subset_Yl2m2[:, 1]))
 
     if (include_noise):
-        noise = SetupData.ligo_noise_stacked(data_dir, offset, num_steps, included_points,
+        noise = 1*SetupData.ligo_noise_stacked(data_dir, offset, num_steps, included_points,
                                    True, 65)
         print ("signal shape is", signal.shape)
-        print (" noise shape is",  noise.shape)
-        signal  += 10*noise
+        print ("noise shape is",  noise.shape)
+        signal  += noise
     else:
         noise = np.ones((len(included_points)))
-    # Fitting Procedure
-    # Define residuals (the quantites which when squared and summed give the cost)
-    def Residuals(x, noise,  params0, params2):
-        target = params0
-        grid = params2/x[15]
-        trial = SetupTrial.construct_trial_from_grid(x, grid)
-        residuals = np.concatenate([target[0, :] - trial[0, :], target[1, :] - trial[1, :]])
-        flattened_noise = np.concatenate([noise[0, :], noise[1, :]])
-        return residuals/flattened_noise
-    x0 = np.ones(numparams)
-    x0[14] = A
-    x0[15] = M
-    lowerbounds =  [-25]*14
-    lowerbounds  = lowerbounds + [0,0]
-    upperbounds  =  [25]*14
-    upperbounds  = upperbounds + [.999, 1]
-    # Actual fitting
-    print("Fitting starting at time " + str(Yl2m2[start_frame, 0]) + " M")
-    print("Peak Strain is around",Yl2m2[max_frame, 0] ,"M")
-    print("Fitting until " + str(Yl2m2[end_frame,0]) +" M")
-    # Compute the best fit given the cost function
-
-    X = least_squares(Residuals, x0 , args=(noise, signal, start_grid), bounds = (lowerbounds, upperbounds))
-    if (plot_waveforms):
-        # Plot the Fitted waveform versus the waveform predicted by Numerical
-        # Relativity
-        plt.plot(start_grid/X['x'][15], signal[1], '-g', label = "NR")
-        plt.plot(start_grid/X['x'][15], (SetupTrial.construct_trial_from_grid(X['x'],
-                                            start_grid/X['x'][15]))[1], label = "Fit")
-        print("a is fit as ", X['x'][14])
-        print("M is fit as", X['x'][15])
-        plt.xlabel(r"time $(M)$")
-        plt.ylabel(r"$h_{+}$")
-        #plt.yscale("log")
-        plt.legend()
-        plt.savefig("FitMassAndSpin.png")
-        plt.figure()
-    if(plot_confidence_intervals):
-        if (target_spin):
-           plt.axhline(X["x"][14] - target_spin, "r")
-        if(target_mass):
-           plt.axvline(X["x"][15] - target_mass, "r")
-        J = np.matrix(X['jac'])
-        H = np.transpose(J)*J
-        Avals = np.linspace(-.01, .01, 1000)
-        Mvals = np.linspace(-.01, .01, 1000)
-        result = np.zeros((len(Avals), len(Mvals)))
-        for i in range(len(Avals)):
-            for j in range(len(Mvals)):
-                result[i,j] = H[14,14]*Avals[i]**2 + 2*H[14,15]*Avals[i]*Mvals[j] + \
-                    H[15,15]*Mvals[j]**2 + X['cost']
-        print(X['cost'])
-        print(len(included_points))
-        cs = plt.contour(Mvals, Avals, log(result)/log(10),levels=10)
-        plt.ylabel(r"$a-a_{best\,\, fit}$")
-        plt.xlabel(r"$M - M_{best\,\, fit}$")
-        plt.title("Taylor Expansion of Cost function near minimum")
-        plt.clabel(cs)
-        plt.clabel(cs)
-        #plt.axhline(y=0, color='r', linestyle='-')
-        #plt.axvline(x=0, color='r', linestyle='-')
-        fig = plt.gcf()
-        fig.set_size_inches(10,10)
-        plt.savefig("ConfidenceIntervals.png")
+    # The fitting here is done with an underlying C++ implementation of the varpro algorithm
+    # Any variables defined on a time grid need to be doubled
+    long_signal = np.concatenate([signal[0, :], signal[1, :]])
+    plt.plot(long_signal)
+    plt.show()
+    long_noise = np.concatenate([noise[0, :], noise[1, :]])
+    end_time = start_grid[-1]
+    double_times  = np.concatenate([start_grid, start_grid + end_time])
+    parameter_guesses = (.5) * np.ones((num_modes * 2))
+    fit_qnms = mylib.get_marquardt(end_time, double_times, long_signal, abs(long_noise), parameter_guesses, 2*num_modes)
+    # Call the fitting method.
+    fit_qnms.fit()
+    # Access Fitting Data here
+    nl = fit_qnms.get_nl_params()
+    lin = fit_qnms.get_lin_params()
+    print("Frequency and Decay rate are ", nl)
+    plt.figure()
+    plt.plot(np.real((lin[0] - 1j*lin[1])*np.exp((1j*nl[1] - nl[0])*start_grid)))
+    plt.show()
 def global_parse_args():
     """
     Parse the command line arguments
@@ -177,11 +120,8 @@ def global_parse_args():
     )
     parser.add_argument(
         "--sampling-routine",
-        help="If not None, then instead of using the whole data consisting of " \
-        + "num_steps steps, it will sample" +\
-        " `num_samples` samples from the points, using the sampling routine given "\
-        + "sampling_routine, possible options include `Every-other` and `Start-heavy`"\
-        +" (for picking more values near the start for the analysis)",
+        help="If not None, then instead of using the whole data consisting of num_steps steps, it will " +\
+        "sample num_samples samples from the points, using the sampling routine given by sampling_routine",
         type=str,
         dest='sampling_routine',
         default=None
@@ -195,7 +135,7 @@ def global_parse_args():
     )
     parser.add_argument(
         "--include-noise",
-        help="Whether to attempt to esitmate errors using a model of injected LIGO noise",
+        help="Whether to attempt to esitmate errors using numerical noise from the simulation",
         type=bool,
         dest='include_noise',
         default=True
