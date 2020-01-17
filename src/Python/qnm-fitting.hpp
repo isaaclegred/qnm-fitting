@@ -1,5 +1,8 @@
+#include <algorithm>
+#include <iterator>
 #include <vector>
 #include "nr3devel.h"
+#include "vectorhelpers.hpp"
 // This is a particular example of a fitting function to be used in an instance of
 // the Sep_marquardt class.
 // Compute the vector of [Re{\psi_1(t)}, ... Re{\psi_n(t)}, Im{\psi_1(t)}, ...  Im{\psi_n(t)}]
@@ -19,7 +22,7 @@ std::vector<double> get_basis_funs(VecDoub params, double t, bool real){
   size_t num_modes = params.size() / 2;
   std::vector<double> funs(2*num_modes);
   // For each function we get a real and imaginary part
-  for (size_t i  = 0; i < 2*num_modes; ++i){
+  for (size_t i  = 0; i < num_modes; i++){
       double Gamma = params[2 * i] ;
       double omega = params[2*i + 1];
       if (real){
@@ -31,7 +34,6 @@ std::vector<double> get_basis_funs(VecDoub params, double t, bool real){
       }
 
   }
-  std::cout << "funs at t = " << t << "are" <<  funs[0] << " " << funs[1];
   return funs;
 }
 // This is a bit complicated, because we have real and imaginary parts, we will have 2 times as many
@@ -39,6 +41,7 @@ std::vector<double> get_basis_funs(VecDoub params, double t, bool real){
 // treat the imaginary values as the value of the function at time points passed some
 // time marker, the `end_time`
 struct fitting_fun{
+
   double end_time;
   fitting_fun(double time) : end_time(time){};
   // For plugging into the superclass constructor,
@@ -51,10 +54,12 @@ struct fitting_fun{
     // Put in expressions for the f_vals and jac
     // $$f(t_i)  = \sum_n c_n e^{-i \omega_n t_i}$$
     auto basis_funs =  get_basis_funs(params, t, real);
-    std::cout << "There are " << basis_funs.size() << " basis_funs" << "\n";
+    f_vals.clear();
+    std::copy(basis_funs.begin(), basis_funs.end(), std::back_inserter(f_vals));
     // `jac` should have two rows total for real and imaginary parts
+    //std::cout << "the function values look like" << "\n";
+    // vec::print(f_vals);
     size_t num_modes = f_vals.size()/2;
-    std::cout << num_modes << "\n";
     for(size_t j = 0; j < num_modes; ++j){
       // The jacobian will be a 2N \times 2N matrix (as there are 2N ``functions",
       // and 2N parameters, the real and imaginary parts of the Omega_j, \omega_j and \Gamma_j),
@@ -63,7 +68,7 @@ struct fitting_fun{
       // and the imaginary part into the negative real part
 
       // If real then these imaginary times -1, if not real, then these are the real functions
-      auto other_funs_for_t = get_basis_funs(params, t, not real);
+
       // derivative of e^{-Gamma_j t} \cos \omega_j t if real or e^{-Gamma_j t} \sin \omega_j t
       // with respect to \Gamma_j
       jac[2*j][2*j] = -t * basis_funs[2*j];
@@ -73,12 +78,7 @@ struct fitting_fun{
       // // derivative of e^{-Gamma_j t} -\sin \omega_j t if real or e^{-Gamma_j t} \cos \omega_j t
       // with respect to \omega_j
       jac[2*j + 1][2*j] = t * basis_funs[2*j + 1 ];
-      jac[2*j + 1][2*j + 1] = -t * basis_funs[2*j] ;
-      for (size_t k = 0; k < 2; k++){
-        for (size_t l = 0; l < 2; l++ ){
-          std::cout << jac[k][l];
-        }
-      }
+      jac[2*j + 1][2*j + 1] = -t * basis_funs[2*j];
     }
   }
 };

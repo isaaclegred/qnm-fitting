@@ -21,7 +21,6 @@ def get_Yl2m2(file_name):
     YLMs = h5file['Extrapolated_N2.dir']
 
     Yl2m2 = YLMs['Y_l2_m2.dat']
-    Yl2m_2 = YLMs['Y_l2_m2']
     Yl2m2_data = np.asarray(Yl2m2)
     h5file.close()
     return Yl2m2_data
@@ -206,7 +205,7 @@ def ligo_noise_of_subset(data_dir, offset, num_steps, included_points,
     return noise
 def ligo_noise_stacked(data_dir, offset, num_steps, included_points,
                          convert, bh_mass,R=1.24*10**20):
-    Ligo_Noise = np.loadtxt("ligonoise.dat")
+    Ligo_Noise = np.loadtxt(data_dir + "/ligonoise.dat")
     # Find the range of frequencies which correspond to usual QNM values, and will serve
     # to interfere with the fitting
     critical_freqs = (min(np.where(Ligo_Noise[:, 0] > 240)[0]),
