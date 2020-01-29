@@ -60,6 +60,9 @@ struct fitting_fun{
     //std::cout << "the function values look like" << "\n";
     // vec::print(f_vals);
     size_t num_modes = f_vals.size()/2;
+    for (size_t j=0; j < 2*num_modes; j++)
+                for (size_t i = 0; i < 2*num_modes; i++)
+                        jac[j][i] = 0.0;
     for(size_t j = 0; j < num_modes; ++j){
       // The jacobian will be a 2N \times 2N matrix (as there are 2N ``functions",
       // and 2N parameters, the real and imaginary parts of the Omega_j, \omega_j and \Gamma_j),
@@ -74,11 +77,11 @@ struct fitting_fun{
       jac[2*j][2*j] = -t * basis_funs[2*j];
       // derivative of e^{-Gamma_j t} \cos \omega_j t if real or e^{-Gamma_j t} \sin \omega_j t
       // with respect to \omega_j
-      jac[2*j][2*j + 1] = -t * basis_funs[2*j + j] ;
+      jac[2*j + 1][2*j] = -t * basis_funs[2*j + 1] ;
       // // derivative of e^{-Gamma_j t} -\sin \omega_j t if real or e^{-Gamma_j t} \cos \omega_j t
       // with respect to \omega_j
-      jac[2*j + 1][2*j] = t * basis_funs[2*j + 1 ];
-      jac[2*j + 1][2*j + 1] = -t * basis_funs[2*j];
+      jac[2*j][2*j + 1] = pow(-1, not(real)) * t * basis_funs[2*j + 1 ];
+      jac[2*j + 1][2*j + 1] = pow(-1, not(real)) * -t * basis_funs[2*j];
     }
   }
 };

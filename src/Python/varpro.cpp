@@ -124,11 +124,15 @@ BOOST_PYTHON_MODULE(mylib){
     .def("free", +[](varpro& M, const int i) {M.free(i);})
     .def("compute_covar", +[](varpro& M) { M.compute_covar();})
     .def("fit", +[](varpro& M) { M.fit();})
-    .def("get_times", +[](varpro& M) -> np::ndarray {return get_np_from_vector(M.x);})
-    .def("get_values", +[](varpro& M) -> np::ndarray {return get_np_from_vector(M.y);})
-    .def("get_nl_params", +[](varpro& M) -> np::ndarray{return get_np_from_vector(M.a);})
-   .def("get_lin_params", +[](varpro& M) -> np::ndarray{return get_np_from_vector(M.c);})
-     .def("get_chisq", +[](varpro& M){return M.chisq;});
+    .def("get_times", +[](varpro& M) -> np::ndarray {
+                         return get_np_from_vector(M.x);})
+    .def("get_values", +[](varpro& M) -> np::ndarray {
+                          return get_np_from_vector(M.y);})
+    .def("get_nl_params", +[](varpro& M) -> np::ndarray{
+                             return get_np_from_vector(M.a);})
+     .def("get_lin_params", +[](varpro& M) -> np::ndarray{
+                               return get_np_from_vector(M.c);})
+    .def("get_chisq", +[](varpro& M){return M.chisq;});
    bp::def("greet", +[](){
                       std::string s =  "hello";
                       const char* c = s.c_str();
