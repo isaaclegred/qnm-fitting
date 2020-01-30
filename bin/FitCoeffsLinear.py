@@ -12,7 +12,7 @@ try:
     Yl2m2 = SetupData.get_Yl2m2("/home/isaaclegred/qnm-fitting/SXSDATA0305/Lev0/rhOverM_Asymptotic_GeometricUnits_CoM.h5")
 except:
     "It's possible this file does not exist, try setting up a data
-    by using GetAndSetupSXSData.sh "
+    by using GetData/DownloadSXSWaveform.py"
 # Use scipy.optimize.least_squares to achieve a much faster fit in the linear case
 # These are the parameters that must be set for the Fitting
 start_frame = 12300

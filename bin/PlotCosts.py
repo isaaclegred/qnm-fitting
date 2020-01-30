@@ -42,11 +42,45 @@ def global_parse_args():
     import argparse as ap
     parser = ap.ArgumentParser()
     parser.add_argument(
-        '--dir ',
-        help="Where to find GW data",
+        "--data-dir ",
+        help="The directory to find the data in",
         type=str,
-        default="/home/isaaclegred/qnm-fitting/GetData/SXS_BBH_0305",
-        dest='dir'
+        dest='data_dir'
+    )
+    parser.add_argument(
+        "--offset",
+        help="The number of steps before the peak strain to start the fitting",
+        type=int,
+        dest='offset'
+    )
+    parser.add_argument(
+        "--num-steps",
+        help="The number of steps between the beginning and ending of the fitting",
+        type=int,
+        dest='num_steps'
+    )
+
+    parser.add_argument(
+         "--num-modes",
+         help="The number of of QNM overtones to use in the fitting",
+         type=int,
+         dest='num_modes',
+         default=7
+    )
+    parser.add_argument(
+        "--resolution-level",
+        help="The resolution level of the data to be used to fit against  (0 to 6)",
+        type=int,
+        dest='resolution_level',
+        default=6
+    )
+        parser.add_argument(
+        "--sampling-routine",
+        help="If not None, then instead of using the whole data consisting of num_steps steps, it will " +\
+        "sample num_samples samples from the points, using the sampling routine given by sampling_routine",
+        type=str,
+        dest='sampling_routine',
+        default=None
     )
     parser.add_argument(
         '--lower-a ',

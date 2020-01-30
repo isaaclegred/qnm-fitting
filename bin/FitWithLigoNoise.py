@@ -31,12 +31,8 @@ def fit_qnm_modes_to_signal(data_dir, offset, num_steps, num_modes=7,
         Yl2m2 = SetupData.get_Yl2m2(data_dir + slash + "Lev" + str(resolution_level) + \
                                     "/rhOverM_Asymptotic_GeometricUnits_CoM.h5")
     except:
-        print(data_dir[-1])
-        print(slash)
-        print(data_dir + slash + "Lev" + str(resolution_level) + \
-                                    "/rhOverM_Asymptotic_GeometricUnits_CoM.h5")
-        print("It's possible this file does not exist, try setting up a data directory by using G\
-        etAndSetupSXSData.sh")
+        print("It's possible this file does not exist, try setting up a data directory by using
+        GetData/DownloadSXSWaveform.py")
     start_and_end_frame = SetupData.get_frames_from_offset_and_steps(Yl2m2, offset, num_steps)
     start_frame = start_and_end_frame[0]
     end_frame = start_and_end_frame[1]
@@ -232,9 +228,12 @@ def global_parse_args():
 if __name__ == "__main__":
     input_args = global_parse_args()
 
-    fit_qnm_modes_to_signal(input_args.data_dir, input_args.offset, input_args.num_steps,
-                            input_args.num_modes, input_args.resolution_level, input_args.sampling_routine,
+    fit_qnm_modes_to_signal(input_args.data_dir, input_args.offset,
+                            input_args.num_steps,
+                            input_args.num_modes, input_args.resolution_level,
+                            input_args.sampling_routine,
                             input_args.num_samples, input_args.include_noise,
                             input_args.plot_confidence_intervals,
-                            input_args.plot_waveforms, target_spin = input_args.target_spin,
+                            input_args.plot_waveforms,
+                            target_spin = input_args.target_spin,
                             target_mass=input_args.target_mass)
