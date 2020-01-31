@@ -26,7 +26,7 @@ def get_Yl2m2(file_name):
     return Yl2m2_data
 def get_levels(directory_name, levels = list(range(7)) ):
     """
-    Given a data directory of the form produced by `GetAndSetupSXSDATA.sh`
+    Given a data directory of the form produced by `SXS`
     and an array like levels containing integer refinement levels, return
     a list of data arrays as would be returned from calling get Yl2m2 on each
     file.
