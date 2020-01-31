@@ -41,9 +41,3 @@ INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS} ${PYTHON_INCLUDE_DIRS} ../includes)
 
 LINK_LIBRARIES(${Boost_LIBRARIES} ${PYTHON_LIBRARIES}) # Deprecated but so convenient!
 PYTHON_ADD_MODULE(mylib  varpro.cpp)
-
-
-
-
-add_executable(output main.cpp)
-target_link_libraries(output  INTERFACE ${BOOST_LIBRARIES})

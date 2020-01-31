@@ -11,3 +11,7 @@
 *.DS*
 # Ignore build directories
 *Build*
+# Ignore things made by doxygen
+*latex*
+*html*
+*log*
