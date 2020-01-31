@@ -34,7 +34,7 @@ def fit_qnm_modes_to_signal(data_dir, offset, num_steps, num_modes=7,
     max_frame = start_frame + offset
     ksc = qnm.cached.KerrSeqCache(init_schw=False)
     # The the number of parameters, 2 times the number of modes + Nonlinear params
-    numparams = 2*num_modes + 2
+    numparams = 4*num_modes
     # Get the time grid the problem will be analyzed on, note that part of
     # fitting the mass of the black hole means changing the physical values
     # of the time at the time points, but topologically the grid stays the same
@@ -62,21 +62,45 @@ def fit_qnm_modes_to_signal(data_dir, offset, num_steps, num_modes=7,
     # The fitting here is done with an underlying C++ implementation of the varpro algorithm
     # Any variables defined on a time grid need to be doubled
     long_signal = np.concatenate([signal[0, :], signal[1, :]])
-    plt.plot(long_signal)
+
     plt.show()
     long_noise = np.concatenate([noise[0, :], noise[1, :]])
     end_time = start_grid[-1]
     double_times  = np.concatenate([start_grid, start_grid + end_time])
     parameter_guesses = (.5) * np.ones((num_modes * 2))
-    fit_qnms = mylib.get_marquardt(end_time, double_times, long_signal, abs(long_noise), parameter_guesses, 2*num_modes)
-    # Call the fitting method.
-    fit_qnms.fit()
+    for index, guess in enumerate(parameter_guesses):
+        print("index is", index)
+        parameter_guesses[index] -= .02 * index
+    fit_qnms = mylib.get_marquardt(double_times, long_signal, np.std(long_noise)*np.ones((len(
+        long_noise))), parameter_guesses, 2*num_modes, np.array([end_time]))
+    print("end time is", end_time)
+    # Call the fitting method
+    for mode in range(num_modes):
+        fit_qnms.hold(2*mode, .5)
+        fit_qnms.hold(2*mode + 1, .5)
+        fit_qnms.holdc(2*mode, 0)
+        fit_qnms.holdc(2*mode  + 1, 0)
+    for fitting_mode in range(num_modes):
+        fit_qnms.free(2*fitting_mode)
+        fit_qnms.free(2*fitting_mode + 1)
+        fit_qnms.freec(2*fitting_mode)
+        fit_qnms.freec(2*fitting_mode + 1)
+        for other_mode in range(num_modes):
+            if (other_mode != fitting_mode):
+                fit_qnms.hold(2*other_mode, fit_qnms.get_nl_params()[2*other_mode])
+                fit_qnms.hold(2*other_mode + 1, fit_qnms.get_nl_params()[2*other_mode + 1])
+        fit_qnms.fit()
     # Access Fitting Data here
     nl = fit_qnms.get_nl_params()
     lin = fit_qnms.get_lin_params()
-    print("Frequency and Decay rate are ", nl)
+    print("Decay Rate and Frequency are ", nl)
     plt.figure()
-    plt.plot(np.real((lin[0] - 1j*lin[1])*np.exp((1j*nl[1] - nl[0])*start_grid)))
+    fit  = np.zeros(len(start_grid))
+    for j in range(num_modes):
+        fit  +=(lin[2*j+1]*cos(nl[2*j+1]*start_grid) - lin[2*j]*sin(nl[2*j+1]*start_grid))*np.exp(-nl[2*j]*start_grid)
+    plt.plot(start_grid, fit, label="Fit")
+    plt.plot(start_grid, signal[0, :], label="NR")
+    plt.legend()
     plt.show()
 def global_parse_args():
     """

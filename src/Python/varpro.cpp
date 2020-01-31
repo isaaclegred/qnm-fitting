@@ -88,13 +88,13 @@ BOOST_PYTHON_MODULE(mylib){
   /// `Sep_marquardt.hpp`
   bp::def("get_marquardt", +[](np::ndarray& xxa, np::ndarray& yya,
                                np::ndarray& ssiga, np::ndarray& aaa, const int pp,
-                                   np::ndarray& params, const double TOL =1e-3){
+                                   np::ndarray& params){
                               auto times = get_vector_from_np(xxa);
                               auto v = get_vector_from_np(xxa);
                               std::cout << "gettting a marquardt" << "\n";
                               return get_marquardt(xxa, yya, ssiga, aaa,
                                                    fitting_fun(get_vector_from_np(params)),
-                                                   pp, TOL);
+                                                   pp);
                                });
   // bp::def("get_marquardt_gauss", +[](np::ndarray& xxa, np::ndarray& yya,
   //                              np::ndarray& ssiga, np::ndarray& aaa, const int pp){
