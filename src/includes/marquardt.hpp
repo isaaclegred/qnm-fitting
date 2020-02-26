@@ -38,10 +38,8 @@ struct Marquardt {
     VecDoub beta(mfit), betanew(mfit), da(mfit), anew(a);
     MatDoub alphanew(mfit, mfit);
     alpha.resize(mfit, mfit);
-    std::cout << "a looks like" << "\n";
     vec::print(a);
     mrqcof(a, alpha, beta);
-    std::cout << "alpha looks like" <<alpha[0][0] << "\n";
     ochisq = chisq;
     alphamax = 0.0;
     for (int i = 0; i < mfit; i++){
@@ -60,7 +58,6 @@ struct Marquardt {
       Cholesky *chol;
       while (sing) {
         MatDoub aa(alpha);
-        std::cout << "aa looks like" << aa[0][0] << "\n";
         for (int i = 0; i < mfit; i++){
           aa[i][i] += lambda;}
         chol = new Cholesky(aa);
@@ -90,10 +87,6 @@ struct Marquardt {
         }
 
       }
-      std::cout << "incrementing a by ";
-      vec::print(da);
-      std::cout << "a now looks like ";
-      vec::print(a);
       dl=0.0;
       for (int i = 0; i < mfit; i++) {
         dl += da[i] * (lambda * da[i] + beta[i]);
@@ -146,7 +139,6 @@ struct Marquardt {
     chisq=0.;
     for (i=0;i<n;i++) {
       funcs(x[i],a,ymod,dyda);
-      std::cout << "dyda looks like" << dyda[0] << "\n";
       sig2i=1.0/(sig[i]*sig[i]);
       dy=y[i]-ymod;
       for (j=0,l=0;l<m;l++) {

@@ -11,7 +11,7 @@ cos = np.cos
 real = np.real
 imag = np.imag
 exp = np.exp
-def minimize_given_mass_and_spin(strain_data, A =.75, M = 1):
+def minimize_given_mass_and_spin(strain_data, A =.75, M = 1, num_modes = 7):
     """
     Return the best fit  associated with fitting to the `strain_data`
     signal using a = `A` and M = `M`
@@ -26,15 +26,17 @@ def minimize_given_mass_and_spin(strain_data, A =.75, M = 1):
     # The the number of parameters, 2 times the number of modes
     numparams = 14
     # Get the time grid the problem will be analyzed on
-    raw_grid = strain_data[start_frame : end_frame, 0] - strain_data[start_frame, 0]*np.ones(strain_data[start_frame:end_frame,0].size)
+    raw_grid = strain_data[start_frame : end_frame, 0] - \
+        strain_data[start_frame, 0]*np.ones(strain_data[start_frame:end_frame,0].size)
     this_grid = raw_grid/M
     # Get the target signal for the fitting
-    signal = np.stack((strain_data[start_frame:end_frame,1] , strain_data[start_frame:end_frame,2]))
+    signal = np.stack((strain_data[start_frame:end_frame,1],
+                       strain_data[start_frame:end_frame,2]))
     # Construct a list of test functions to be used for the fitting
     test_funcs = []
     for i in range(7):
         for j in (True, False):
-            mode_seq = ksc(s = -2, l = 2, m = -2, n = i)
+            mode_seq = ksc(s = -2, l = 2, m = 2, n = i)
             freq = mode_seq(a = A)[0]
             if j:
                 test_funcs.append(sin(real(freq)*this_grid)*exp(imag(freq)*this_grid))
@@ -62,7 +64,7 @@ def minimize_given_mass_and_spin(strain_data, A =.75, M = 1):
     x0 = np.ones(numparams)
     X = least_squares(Residuals, x0 , args=(signal, test_funcs, this_grid), gtol = 10**-15)
     return (X, test_funcs)
-def best_linear_fit_cost(strain_data, a = .75, m = 1):
+def best_linear_fit_cost(strain_data, a = .75, m = 1, num_modes  = 7):
     """
     Return the cost associated with the best fit to spin and mass.
     """

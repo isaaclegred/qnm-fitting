@@ -55,15 +55,13 @@ np::ndarray get_np_from_vector(const std::vector<double>& v){
     reinterpret_cast<double*>(my_zeros.get_data());
   for (size_t i = 0; i < v.size(); ++i) {
     zero_data[i] = data[i];
-    std::cout << "data is trying to be np-ified" << data[i] << "\n";
   }
   return my_zeros;
 }
 varpro get_marquardt(np::ndarray& xxa, np::ndarray& yya,
                     np::ndarray& ssiga, np::ndarray& aaa,
                     fitting_fun f,
-                    const int pp,  const double TOL=1.e-1) noexcept{
-  std::cout << "there are " << get_size(aaa) <<" nonlinear params " <<"\n";
+                    const int pp,  const double TOL=1.e-8) noexcept{
     return varpro(get_vector_from_np(xxa),
                          get_vector_from_np(yya),
                          get_vector_from_np(ssiga),
@@ -106,7 +104,6 @@ BOOST_PYTHON_MODULE(mylib){
   //                            });
   bp::def("get_numpy", +[](np::ndarray& input) -> np::ndarray {
                           int arr_size = get_size(input);
-                          std::cout << arr_size << '\n';
                           const auto v = get_vector_from_np(input);
                           const double* data = v.data();
                           np::dtype dt = np::dtype::get_builtin<double>();

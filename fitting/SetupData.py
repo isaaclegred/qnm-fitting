@@ -13,14 +13,18 @@ def convert_from_hz(bh_mass, freq):
     c = 3*10**8
     return freq/c**3/G/(bh_mass*1.89*10**30)/(2*np.pi)
 
-def get_Yl2m2(file_name):
+def get_Yl2m2(file_name, spin_dir = 1):
     '''
     Get the Y_l2_m2 dataset for a particular h5 file
     '''
+
     h5file = h5py.File(file_name, 'r')
     YLMs = h5file['Extrapolated_N2.dir']
+    if spin_dir == 1:
+        Yl2m2 = YLMs['Y_l2_m2.dat']
+    else:
+        Yl2m2 = YLMs['Y_l2_m-2.dat']
 
-    Yl2m2 = YLMs['Y_l2_m2.dat']
     Yl2m2_data = np.asarray(Yl2m2)
     h5file.close()
     return Yl2m2_data

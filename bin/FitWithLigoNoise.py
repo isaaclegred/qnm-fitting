@@ -31,7 +31,7 @@ def fit_qnm_modes_to_signal(data_dir, offset, num_steps, num_modes=7,
         Yl2m2 = SetupData.get_Yl2m2(data_dir + slash + "Lev" + str(resolution_level) + \
                                     "/rhOverM_Asymptotic_GeometricUnits_CoM.h5")
     except:
-        print("It's possible this file does not exist, try setting up a data directory by using
+        print("It's possible this file does not exist, try setting up a data directory by using \
         GetData/DownloadSXSWaveform.py")
     start_and_end_frame = SetupData.get_frames_from_offset_and_steps(Yl2m2, offset, num_steps)
     start_frame = start_and_end_frame[0]
@@ -42,8 +42,8 @@ def fit_qnm_modes_to_signal(data_dir, offset, num_steps, num_modes=7,
     numparams = 2*num_modes + 2
     # The initial dimensionless spin of the black hole to use
     # to generate the modes, will be minimized
-    A = .3
-    M = .99
+    A = .6
+    M = .95
     # If a sampling routine for the points is specified, get the a subset of the points
     # sampled using the routine, otherwise, use all the points in [start_frame, end_frame)
     if (sampling_routine):
@@ -64,24 +64,25 @@ def fit_qnm_modes_to_signal(data_dir, offset, num_steps, num_modes=7,
                                    True, 65)
         print ("signal shape is", signal.shape)
         print (" noise shape is",  noise.shape)
-        signal  += 10*noise
+        signal  += noise
     else:
         noise = np.ones((len(included_points)))
     # Fitting Procedure
     # Define residuals (the quantites which when squared and summed give the cost)
     def Residuals(x, noise,  params0, params2):
         target = params0
-        grid = params2/x[15]
-        trial = SetupTrial.construct_trial_from_grid(x, grid)
+        grid = params2/x[numparams - 1]
+        trial = SetupTrial.construct_trial_from_grid(x, grid, num_modes)
         residuals = np.concatenate([target[0, :] - trial[0, :], target[1, :] - trial[1, :]])
         flattened_noise = np.concatenate([noise[0, :], noise[1, :]])
         return residuals/flattened_noise
+    # Guesses for the individual parameters, we need to provide intelligent guesses for the mass and spin
     x0 = np.ones(numparams)
-    x0[14] = A
-    x0[15] = M
-    lowerbounds =  [-25]*14
+    x0[numparams - 2] = A
+    x0[numparams - 1] = M
+    lowerbounds =  [-25]*(numparams -2)
     lowerbounds  = lowerbounds + [0,0]
-    upperbounds  =  [25]*14
+    upperbounds  =  [25]*(numparams -2)
     upperbounds  = upperbounds + [.999, 1]
     # Actual fitting
     print("Fitting starting at time " + str(Yl2m2[start_frame, 0]) + " M")
@@ -93,11 +94,12 @@ def fit_qnm_modes_to_signal(data_dir, offset, num_steps, num_modes=7,
     if (plot_waveforms):
         # Plot the Fitted waveform versus the waveform predicted by Numerical
         # Relativity
-        plt.plot(start_grid/X['x'][15], signal[1], '-g', label = "NR")
-        plt.plot(start_grid/X['x'][15], (SetupTrial.construct_trial_from_grid(X['x'],
-                                            start_grid/X['x'][15]))[1], label = "Fit")
-        print("a is fit as ", X['x'][14])
-        print("M is fit as", X['x'][15])
+        plt.plot(start_grid/X['x'][numparams - 1], signal[1], '-g', label = "NR")
+        plt.plot(start_grid/X['x'][numparams - 1], (SetupTrial.construct_trial_from_grid(X['x'],
+                                                    start_grid/X['x'][numparams -1], num_modes))[1],
+                 label = "Fit")
+        print("a is fit as ", X['x'][numparams - 2])
+        print("M is fit as", X['x'][numparams - 1])
         plt.xlabel(r"time $(M)$")
         plt.ylabel(r"$h_{+}$")
         #plt.yscale("log")
@@ -106,9 +108,9 @@ def fit_qnm_modes_to_signal(data_dir, offset, num_steps, num_modes=7,
         plt.figure()
     if(plot_confidence_intervals):
         if (target_spin):
-           plt.axhline(X["x"][14] - target_spin, "r")
+           plt.axhline(X["x"][numparams - 2] - target_spin, "r")
         if(target_mass):
-           plt.axvline(X["x"][15] - target_mass, "r")
+           plt.axvline(X["x"][numparams -1] - target_mass, "r")
         J = np.matrix(X['jac'])
         H = np.transpose(J)*J
         Avals = np.linspace(-.01, .01, 1000)
@@ -116,8 +118,9 @@ def fit_qnm_modes_to_signal(data_dir, offset, num_steps, num_modes=7,
         result = np.zeros((len(Avals), len(Mvals)))
         for i in range(len(Avals)):
             for j in range(len(Mvals)):
-                result[i,j] = H[14,14]*Avals[i]**2 + 2*H[14,15]*Avals[i]*Mvals[j] + \
-                    H[15,15]*Mvals[j]**2 + X['cost']
+                result[i,j] = H[numparams-2,numparams-2]*Avals[i]**2 + \
+                2*H[numparams-2,numparams-1]*Avals[i]*Mvals[j] + \
+                    H[numparams-1,numparams-1]*Mvals[j]**2 + X['cost']
         print(X['cost'])
         print(len(included_points))
         cs = plt.contour(Mvals, Avals, log(result)/log(10),levels=10)
