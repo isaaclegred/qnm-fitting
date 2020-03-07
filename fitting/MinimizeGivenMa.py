@@ -11,7 +11,8 @@ cos = np.cos
 real = np.real
 imag = np.imag
 exp = np.exp
-def minimize_given_mass_and_spin(strain_data, A =.75, M = 1, num_modes = 7):
+def minimize_given_mass_and_spin(strain_data, A =.75, M = 1, num_modes = 7,
+                                spin=1):
     """
     Return the best fit  associated with fitting to the `strain_data`
     signal using a = `A` and M = `M`
@@ -36,7 +37,7 @@ def minimize_given_mass_and_spin(strain_data, A =.75, M = 1, num_modes = 7):
     test_funcs = []
     for i in range(7):
         for j in (True, False):
-            mode_seq = ksc(s = -2, l = 2, m = 2, n = i)
+            mode_seq = ksc(s = -2, l = 2, m = spin*2, n = i)
             freq = mode_seq(a = A)[0]
             if j:
                 test_funcs.append(sin(real(freq)*this_grid)*exp(imag(freq)*this_grid))
@@ -64,9 +65,10 @@ def minimize_given_mass_and_spin(strain_data, A =.75, M = 1, num_modes = 7):
     x0 = np.ones(numparams)
     X = least_squares(Residuals, x0 , args=(signal, test_funcs, this_grid), gtol = 10**-15)
     return (X, test_funcs)
-def best_linear_fit_cost(strain_data, a = .75, m = 1, num_modes  = 7):
+def best_linear_fit_cost(strain_data, a = .75, m = 1, num_modes  = 7, spin=1):
     """
     Return the cost associated with the best fit to spin and mass.
     """
-    (X,test_funcs) = minimize_given_mass_and_spin(strain_data, A = a, M = m)
+    (X,test_funcs) = minimize_given_mass_and_spin(strain_data, A = a, M = m,
+                                                  spin=1)
     return X["cost"]

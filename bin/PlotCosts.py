@@ -14,7 +14,7 @@ exp = np.exp
 from MinimizeGivenMa import *
 
 def plot_minimal_costs(Yl2m2_data, a_bounds, M_bounds, a_steps=30, M_steps=30,
-                       target_a=None, target_M=None, num_modes=7):
+                       target_a=None, target_M=None, num_modes=7, precessing=False, spin=1):
     """
     Plot the "cost" associated with the best fit of the coefficients for
     values of a in a_bounds = (a_min, a_max), and M_bounds = (M_min, M_max)
@@ -25,7 +25,7 @@ def plot_minimal_costs(Yl2m2_data, a_bounds, M_bounds, a_steps=30, M_steps=30,
     result = np.zeros((len(Avals), len(Mvals)))
     for i in range(len(Avals)):
         for j in range(len(Mvals)):
-            result[i,j] = best_linear_fit_cost(Yl2m2_data, Avals[i], Mvals[j])
+            result[i,j] = best_linear_fit_cost(Yl2m2_data, Avals[i], Mvals[j], spin)
     plt.contourf(Mvals,Avals, np.log(result)/np.log(10), levels=60, extend = "both")
     if(target_a):
         plt.axhline(y=target_a, color='r', linestyle='-')
@@ -33,7 +33,7 @@ def plot_minimal_costs(Yl2m2_data, a_bounds, M_bounds, a_steps=30, M_steps=30,
         plt.axvline(x=target_M, color='r', linestyle='-')
     plt.xlabel(r"$M_f (M_{i})$")
     plt.ylabel(r"$\chi_f$")
-    plt.savefig("MinimumCostsManda.png")
+    plt.savefig("GWMinimumCostsManda.png")
 
 def global_parse_args():
     """
@@ -125,11 +125,11 @@ def global_parse_args():
         dest='M_steps'
     )
     parser.add_argument(
-        '--ref-level ',
+        '--resolution-level ',
         help="The refinement level to use",
         type=float,
         default=3,
-        dest='ref_level'
+        dest='resolution_level'
     )
     parser.add_argument(
         '--target-a ',
@@ -145,12 +145,31 @@ def global_parse_args():
         default=None,
         dest='target_M'
     )
+    parser.add_argument(
+        "--precessing",
+        help="True if the binary system was precessing/ if the spin is not aligmed with z",
+        type=bool,
+        dest='precessing',
+        default=False)
     return parser.parse_args()
 if __name__ == "__main__":
     input_args = global_parse_args()
-    Yl2m2 = SetupData.get_Yl2m2(input_args.data_dir + "/Lev"+ str(input_args.ref_level) + "/rhOverM_Asymptotic_GeometricUnits_CoM.h5")
+    data_dir = input_args.data_dir
+    resolution_level = input_args.resolution_level
+    # We will tolerate both having and not having a `/` at the end of data_dir
+    slash = ""
+    if data_dir[-1] != '/':
+        slash += "/"
+    if input_args.precessing:
+        print("A precessing waveform is being used")
+        Yl2m2  = SetupData.get_corrected_2_2(data_dir + slash + "Lev" + \
+                                             str(resolution_level) + \
+                                    "/rhOverM_Asymptotic_GeometricUnits_CoM.h5")
+    else:
+        Yl2m2 = SetupData.get_Yl2m2(data_dir + slash + "Lev" + str(resolution_level) + \
+                                    "/rhOverM_Asymptotic_GeometricUnits_CoM.h5")
     a_bounds = (input_args.lower_a, input_args.upper_a)
     M_bounds = (input_args.lower_M, input_args.upper_M)
     plot_minimal_costs(Yl2m2, a_bounds, M_bounds, input_args.a_steps,
                     input_args.M_steps, input_args.target_a, input_args.target_M,
-                       input_args.num_modes)
+                       input_args.num_modes, input_args.precessing)

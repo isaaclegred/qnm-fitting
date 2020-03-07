@@ -8,6 +8,7 @@ import matplotlib as mpl
 mpl.use('Agg')
 from matplotlib import pyplot as plt
 
+
 # Some useful definitons to shorten the code
 sin = np.sin
 cos = np.cos
@@ -21,18 +22,21 @@ def fit_qnm_modes_to_signal(data_dir, offset, num_steps, num_modes=7,
                             resolution_level=6,sampling_routine=None, num_samples=None,
                             include_noise=False, plot_confidence_intervals=False,
                             plot_waveforms=True, target_spin=None,
-                            target_mass=None):
+                            precessing=False, target_mass=None, save_name="GW"):
      # We will tolerate both having and not having a `/` at the end of data_dir
     slash = ""
     if data_dir[-1] != '/':
         slash += "/"
-    try:
 
+    if precessing:
+        print("A precessing waveform is being used")
+        Yl2m2  = SetupData.get_corrected_2_2(data_dir + slash + "Lev" + \
+                                            str(resolution_level) + \
+                                    "/rhOverM_Asymptotic_GeometricUnits_CoM.h5")
+    else:
         Yl2m2 = SetupData.get_Yl2m2(data_dir + slash + "Lev" + str(resolution_level) + \
                                     "/rhOverM_Asymptotic_GeometricUnits_CoM.h5")
-    except:
-        print("It's possible this file does not exist, try setting up a data directory by using \
-        GetData/DownloadSXSWaveform.py")
+
     start_and_end_frame = SetupData.get_frames_from_offset_and_steps(Yl2m2, offset, num_steps)
     start_frame = start_and_end_frame[0]
     end_frame = start_and_end_frame[1]
@@ -60,7 +64,7 @@ def fit_qnm_modes_to_signal(data_dir, offset, num_steps, num_modes=7,
                        subset_Yl2m2[:, 1]))
 
     if (include_noise):
-        noise = SetupData.ligo_noise_stacked(data_dir, offset, num_steps, included_points,
+        noise = 100*SetupData.ligo_noise_stacked(data_dir, offset, num_steps, included_points,
                                    True, 65)
         print ("signal shape is", signal.shape)
         print (" noise shape is",  noise.shape)
@@ -72,7 +76,7 @@ def fit_qnm_modes_to_signal(data_dir, offset, num_steps, num_modes=7,
     def Residuals(x, noise,  params0, params2):
         target = params0
         grid = params2/x[numparams - 1]
-        trial = SetupTrial.construct_trial_from_grid(x, grid, num_modes)
+        trial = SetupTrial.construct_trial_from_grid(x, grid, num_modes, spin=1)
         residuals = np.concatenate([target[0, :] - trial[0, :], target[1, :] - trial[1, :]])
         flattened_noise = np.concatenate([noise[0, :], noise[1, :]])
         return residuals/flattened_noise
@@ -104,7 +108,7 @@ def fit_qnm_modes_to_signal(data_dir, offset, num_steps, num_modes=7,
         plt.ylabel(r"$h_{+}$")
         #plt.yscale("log")
         plt.legend()
-        plt.savefig("FitMassAndSpin.png")
+        plt.savefig(save_name + "FitMassAndSpin.png")
         plt.figure()
     if(plot_confidence_intervals):
         if (target_spin):
@@ -133,7 +137,7 @@ def fit_qnm_modes_to_signal(data_dir, offset, num_steps, num_modes=7,
         #plt.axvline(x=0, color='r', linestyle='-')
         fig = plt.gcf()
         fig.set_size_inches(10,10)
-        plt.savefig("ConfidenceIntervals.png")
+        plt.savefig(save_name + "ConfidenceIntervals.png")
 def global_parse_args():
     """
     Parse the command line arguments
@@ -227,6 +231,21 @@ def global_parse_args():
         dest='target_mass',
         default=None
     )
+    parser.add_argument(
+        "--save_name",
+        help="The name to prepend to the save files, without extension",
+        type=str,
+        dest='save_name',
+        default="GW"
+
+
+    )
+    parser.add_argument(
+        "--precessing",
+        help="True if the binary system was precessing/ if the spin is not aligmed with z",
+        type=bool,
+        dest='precessing',
+        default=False)
     return parser.parse_args()
 if __name__ == "__main__":
     input_args = global_parse_args()
@@ -239,4 +258,7 @@ if __name__ == "__main__":
                             input_args.plot_confidence_intervals,
                             input_args.plot_waveforms,
                             target_spin = input_args.target_spin,
-                            target_mass=input_args.target_mass)
+                            target_mass=input_args.target_mass,
+                            save_name=input_args.save_name,
+                            precessing=input_args.precessing
+    )

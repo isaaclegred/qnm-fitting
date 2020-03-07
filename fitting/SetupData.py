@@ -1,6 +1,9 @@
 import h5py
 import numpy as np
 import glob
+from spherical_functions import LM_index as lm
+import quaternion
+import scri
 # Convert a frequency given in units G=c=M=1 to Hertz, bh_mass is in solar
 # masses
 def convert_freq_to_hz(bh_mass, freq):
@@ -52,6 +55,7 @@ def get_data(file_name, data_name ):
     Yl2m2_data = np.asarray(Yl2m2)
     h5file.close()
     return Yl2m2_data
+
 def list_dat_files(file_name):
     '''
     Get a list of all possible datasets in an h5 file
@@ -121,8 +125,7 @@ def get_data_subset(strain_data, included_points):
     Given strain_data, and an array containing the indices of which points
     to include in the final data set, return the desired points
     """
-    print(strain_data)
-    print(strain_data.shape)
+
     final_data = np.zeros((len(included_points), 3))
     for j in range(final_data.shape[0]):
         final_data[j, :] = strain_data[included_points[j], :]
@@ -220,3 +223,29 @@ def ligo_noise_stacked(data_dir, offset, num_steps, included_points,
     print(error_source)
     noise  = 1/np.sqrt(2)*np.random.normal(0, scale=error_source, size=(2, len(included_points)))
     return noise
+def get_l_2_data(file_name):
+    all_data = []
+    for m in ["-2", "-1", "0", "1", "2"]:
+        h5file = h5py.File(file_name, 'r')
+        YLMs = h5file['Extrapolated_N2.dir']
+        all_data.append(YLMs["Y_l2_m" + m + ".dat"])
+    return all_data
+def get_corrected_2_2(file_name):
+    h = scri.SpEC.read_from_h5(file_name + "/Extrapolated_N2.dir")
+    # Get the waveform in the coprecessing frame
+    i = quaternion.quaternion(0,1,0,0)
+    j = quaternion.quaternion(0,0,1,0)
+    k = quaternion.quaternion(0,0,0,1)
+    def cross(a,b):
+        return 1/2*(a*b - b*a)
+    k_hat = quaternion.quaternion(0, 0.0322711539692, 0.12081275417, 0.783021732156)
+    k_hat = k_hat/ np.sqrt(k_hat*np.conjugate(k_hat))
+    ax = cross(k, k_hat)
+    ax = ax/np.sqrt(ax*np.conjugate(ax))
+    cos_al = np.real(k*np.conjugate(k_hat))
+    alpha = np.arccos(cos_al)
+    rotor = np.concatenate([np.array([np.cos(0.5*alpha)]),np.sin(0.5*alpha)*ax.imag])
+    h_rot = h.transform(frame_rotation=rotor)
+    return np.transpose(np.stack([h_rot.t,
+                                  np.real(h_rot.data[:, lm(2, 2, h_rot.ell_min)]),
+                                  np.imag(h_rot.data[:, lm(2, 2, h_rot.ell_min)])]))
