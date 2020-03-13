@@ -46,7 +46,7 @@ def fit_qnm_modes_to_signal(data_dir, offset, num_steps, num_modes=7,
     numparams = 2*num_modes + 2
     # The initial dimensionless spin of the black hole to use
     # to generate the modes, will be minimized
-    A = .6
+    A = .01
     M = .95
     # If a sampling routine for the points is specified, get the a subset of the points
     # sampled using the routine, otherwise, use all the points in [start_frame, end_frame)
@@ -87,7 +87,7 @@ def fit_qnm_modes_to_signal(data_dir, offset, num_steps, num_modes=7,
     lowerbounds =  [-25]*(numparams -2)
     lowerbounds  = lowerbounds + [0,0]
     upperbounds  =  [25]*(numparams -2)
-    upperbounds  = upperbounds + [.999, 1]
+    upperbounds  = upperbounds + [.999, 2]
     # Actual fitting
     print("Fitting starting at time " + str(Yl2m2[start_frame, 0]) + " M")
     print("Peak Strain is around",Yl2m2[max_frame, 0] ,"M")

@@ -238,14 +238,16 @@ def get_corrected_2_2(file_name):
     k = quaternion.quaternion(0,0,0,1)
     def cross(a,b):
         return 1/2*(a*b - b*a)
-    k_hat = quaternion.quaternion(0, 0.0322711539692, 0.12081275417, 0.783021732156)
+    k_hat = quaternion.quaternion(0, 0.25269634778, 0.04202266793, 0.80968828452 )
     k_hat = k_hat/ np.sqrt(k_hat*np.conjugate(k_hat))
     ax = cross(k, k_hat)
     ax = ax/np.sqrt(ax*np.conjugate(ax))
     cos_al = np.real(k*np.conjugate(k_hat))
     alpha = np.arccos(cos_al)
     rotor = np.concatenate([np.array([np.cos(0.5*alpha)]),np.sin(0.5*alpha)*ax.imag])
-    h_rot = h.transform(frame_rotation=rotor)
+    h.to_corotating_frame()
+    #h_rot = h.transform(frame_rotation=rotor)
+    h_rot = h
     return np.transpose(np.stack([h_rot.t,
                                   np.real(h_rot.data[:, lm(2, 2, h_rot.ell_min)]),
                                   np.imag(h_rot.data[:, lm(2, 2, h_rot.ell_min)])]))

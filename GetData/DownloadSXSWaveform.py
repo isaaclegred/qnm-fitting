@@ -37,7 +37,7 @@
 
 # Set which simulations will have their data downloaded
 
-Simulations  = ['SXS:BBH:2037']
+Simulations  = ['SXS:BBH:1975']
 
 # For downloading data
 import sxs
