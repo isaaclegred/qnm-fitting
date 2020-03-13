@@ -245,7 +245,7 @@ def get_corrected_2_2(file_name):
     cos_al = np.real(k*np.conjugate(k_hat))
     alpha = np.arccos(cos_al)
     rotor = np.concatenate([np.array([np.cos(0.5*alpha)]),np.sin(0.5*alpha)*ax.imag])
-    h.to_corotating_frame()
+    h.to_coprecessing_frame()
     #h_rot = h.transform(frame_rotation=rotor)
     h_rot = h
     return np.transpose(np.stack([h_rot.t,
