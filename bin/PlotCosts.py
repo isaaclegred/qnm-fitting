@@ -113,14 +113,14 @@ def global_parse_args():
     parser.add_argument(
         '--a-steps ',
         help="The number of steps in the a direction",
-        type=float,
+        type=int,
         default=30,
         dest='a_steps'
     )
     parser.add_argument(
         '--M-steps ',
         help="The number of steps in the M direction",
-        type=float,
+        type=int,
         default=30,
         dest='M_steps'
     )
