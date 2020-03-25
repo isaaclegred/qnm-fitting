@@ -18,24 +18,12 @@ exp = np.exp
 log = np.log
 # This is an executable designed to be used to fit QNM to gravitational wave signals,
 # see the options below to see what options are available for the fitting.
-def fit_qnm_modes_to_signal(data_dir, offset, num_steps, num_modes=7,
-                            resolution_level=6,sampling_routine=None, num_samples=None,
+def fit_qnm_modes_to_signal(data_dir, Yl2m2, offset, num_steps, num_modes=7,
+                            sampling_routine=None, num_samples=None,
                             include_noise=False, plot_confidence_intervals=False,
                             plot_waveforms=True, target_spin=None,
-                            precessing=False, target_mass=None, save_name="GW"):
-     # We will tolerate both having and not having a `/` at the end of data_dir
-    slash = ""
-    if data_dir[-1] != '/':
-        slash += "/"
-
-    if precessing:
-        print("A precessing waveform is being used")
-        Yl2m2  = SetupData.get_corrected_2_2(data_dir + slash + "Lev" + \
-                                            str(resolution_level) + \
-                                    "/rhOverM_Asymptotic_GeometricUnits_CoM.h5")
-    else:
-        Yl2m2 = SetupData.get_Yl2m2(data_dir + slash + "Lev" + str(resolution_level) + \
-                                    "/rhOverM_Asymptotic_GeometricUnits_CoM.h5")
+                            target_mass=None, save_name="GW", a_guess=None
+                            M_guess=None):
 
     start_and_end_frame = SetupData.get_frames_from_offset_and_steps(Yl2m2, offset, num_steps)
     start_frame = start_and_end_frame[0]
@@ -46,8 +34,14 @@ def fit_qnm_modes_to_signal(data_dir, offset, num_steps, num_modes=7,
     numparams = 2*num_modes + 2
     # The initial dimensionless spin of the black hole to use
     # to generate the modes, will be minimized
-    A = .01
-    M = .95
+    if a_guess:
+        A = a_guess
+    else:
+        A = .6
+    if M_guess:
+        M = M_guess
+    else:
+        M = .95
     # If a sampling routine for the points is specified, get the a subset of the points
     # sampled using the routine, otherwise, use all the points in [start_frame, end_frame)
     if (sampling_routine):
@@ -87,7 +81,7 @@ def fit_qnm_modes_to_signal(data_dir, offset, num_steps, num_modes=7,
     lowerbounds =  [-25]*(numparams -2)
     lowerbounds  = lowerbounds + [0,0]
     upperbounds  =  [25]*(numparams -2)
-    upperbounds  = upperbounds + [.999, 2]
+    upperbounds  = upperbounds + [.999, 1]
     # Actual fitting
     print("Fitting starting at time " + str(Yl2m2[start_frame, 0]) + " M")
     print("Peak Strain is around",Yl2m2[max_frame, 0] ,"M")
@@ -138,6 +132,7 @@ def fit_qnm_modes_to_signal(data_dir, offset, num_steps, num_modes=7,
         fig = plt.gcf()
         fig.set_size_inches(10,10)
         plt.savefig(save_name + "ConfidenceIntervals.png")
+    return X
 def global_parse_args():
     """
     Parse the command line arguments
@@ -240,25 +235,26 @@ def global_parse_args():
 
 
     )
-    parser.add_argument(
-        "--precessing",
-        help="True if the binary system was precessing/ if the spin is not aligmed with z",
-        type=bool,
-        dest='precessing',
-        default=False)
     return parser.parse_args()
 if __name__ == "__main__":
     input_args = global_parse_args()
+    data_dir = input_args.data_dir
+    resolution_level = input_args.resolution_level
+    # We will tolerate both having and not having a `/` at the end of data_dir
+    slash = ""
+    if data_dir[-1] != '/':
+        slash += "/"
 
-    fit_qnm_modes_to_signal(input_args.data_dir, input_args.offset,
+    Yl2m2 = SetupData.get_Yl2m2(data_dir + slash + "Lev" + str(resolution_level) + \
+                                    "/rhOverM_Asymptotic_GeometricUnits_CoM.h5")
+    fit_qnm_modes_to_signal(data_dir, Yl2m2, input_args.offset,
                             input_args.num_steps,
-                            input_args.num_modes, input_args.resolution_level,
+                            input_args.num_modes,
                             input_args.sampling_routine,
                             input_args.num_samples, input_args.include_noise,
                             input_args.plot_confidence_intervals,
                             input_args.plot_waveforms,
                             target_spin = input_args.target_spin,
                             target_mass=input_args.target_mass,
-                            save_name=input_args.save_name,
-                            precessing=input_args.precessing
+                            save_name=input_args.save_name
     )

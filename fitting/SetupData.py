@@ -120,6 +120,15 @@ def get_frames_from_offset_and_steps(strain_data, offset, steps):
     """
     max_step, h_res_max  =  find_maxs(strain_data)
     return (max_step - offset, max_step - offset + steps)
+def get_frames_from_scri(scri_h, offset, steps):
+    """
+    Get the output of the function above given a scri waveform object instead of an
+    array of strain data
+    """
+    l, m = 2, 2
+    Yl2m2  = np.stack([scri_h.t, real(scri_h.data[:, lm(l, m, h.ell_min)]),
+    imag(scri_h.data[:, lm(l, m, h.ell_min)])])
+    return get_frames_from_offset_and_steps(strain_data, offset, steps)
 def get_data_subset(strain_data, included_points):
     """
     Given strain_data, and an array containing the indices of which points

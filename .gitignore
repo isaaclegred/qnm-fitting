@@ -7,7 +7,7 @@
 *DATA*
 # Ignore python modules themselves, as they can be remade
 *.pyc
-# Igonre .DS
+# Ignore .DS
 *.DS*
 # Ignore build directories
 *Build*
@@ -15,3 +15,5 @@
 *latex*
 *html*
 *log*
+# Ignore movies
+*.mp4*
