@@ -21,7 +21,7 @@ log = np.log
 def fit_qnm_modes_to_signal(data_dir, Yl2m2, offset, num_steps, num_modes=7,
                             sampling_routine=None, num_samples=None,
                             include_noise=False, plot_confidence_intervals=False,
-                            plot_waveforms=True, target_spin=None,
+                            plot_waveforms=True, output_data=False, target_spin=None,
                             target_mass=None, save_name="GW", a_guess=None,
                             M_guess=None):
 
@@ -89,6 +89,17 @@ def fit_qnm_modes_to_signal(data_dir, Yl2m2, offset, num_steps, num_modes=7,
     # Compute the best fit given the cost function
 
     X = least_squares(Residuals, x0 , args=(noise, signal, start_grid), bounds = (lowerbounds, upperbounds))
+    if (output_data):
+        output = open(save_name + ".txt", "w+")
+        output.write("This is a fit to data contained in " + data_dir)
+        output.write("a is fit as " + str(X['x'][numparams - 2]))
+        output.write("M is fit as" + str(X['x'][numparams - 1]))
+        output.write("There were" + str(num_steps)+ "points used starting from" + str(offset) + \
+                     "points before the peak strain in the 2-2 mode")
+        output.write("Full Fitting Data is")
+        output.write(X)
+        output.write("The parameters which have been fit are the pairs of linear parameters, and the" +
+                     " final two parameters are the fit spin and mass of the remnant")
     if (plot_waveforms):
         # Plot the Fitted waveform versus the waveform predicted by Numerical
         # Relativity
@@ -120,7 +131,6 @@ def fit_qnm_modes_to_signal(data_dir, Yl2m2, offset, num_steps, num_modes=7,
                 2*H[numparams-2,numparams-1]*Avals[i]*Mvals[j] + \
                     H[numparams-1,numparams-1]*Mvals[j]**2 + X['cost']
         print(X['cost'])
-        print(len(included_points))
         cs = plt.contour(Mvals, Avals, log(result)/log(10),levels=10)
         plt.ylabel(r"$a-a_{best\,\, fit}$")
         plt.xlabel(r"$M - M_{best\,\, fit}$")

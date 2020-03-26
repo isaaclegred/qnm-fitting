@@ -26,7 +26,7 @@ def fit_precessing_waveform(data_dir, offset, num_steps, num_modes=7,
     if data_dir[-1] != '/':
         slash += "/"
     path =  data_dir + slash + \
-            "Lev" + str(resolution_level) + "/rhOverM_Asymptotic_GeometricUnits_COM.h5"
+            "Lev" + str(resolution_level) + "/rhOverM_Asymptotic_GeometricUnits_CoM.h5"
     h = scri.SpEC.read_from_h5(path+"/Extrapolated_N4.dir")
     current_a = .6
     if a_guess:
@@ -54,7 +54,7 @@ def fit_precessing_waveform(data_dir, offset, num_steps, num_modes=7,
         current_M = X["x"][-1]
         return X["cost"]
     T0 = np.array([0,0])
-    T = minimize(lambda Q :  Cost (Q, current_a, current_M) , T0, tol = num_steps*4)
+    T = minimize(lambda Q :  Cost (Q, current_a, current_M) , T0, tol = num_steps*4000)
     return T
 def global_parse_args():
     """
