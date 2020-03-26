@@ -21,7 +21,6 @@ def fit_precessing_waveform(data_dir, offset, num_steps, num_modes=7,
                             plot_waveforms=True, target_spin=None,
                             target_mass=None, save_name="GW", a_guess=None,
                             M_guess=None):
-
     # We will tolerate both having and not having a `/` at the end of data_dir
     slash = ""
     if data_dir[-1] != '/':
@@ -29,16 +28,14 @@ def fit_precessing_waveform(data_dir, offset, num_steps, num_modes=7,
     path =  data_dir + slash + \
             "Lev" + str(resolution_level) + "/rhOverM_Asymptotic_GeometricUnits_COM.h5"
     h = scri.SpEC.read_from_h5(path+"/Extrapolated_N4.dir")
+    current_a = .6
     if a_guess:
         current_a = a_guess
-    else:
-        current_a = .6
+    current_M = .95
     if M_guess:
         current_M = M_guess
-    else:
-        M = .95
     # Define Cost Funciton
-    def Cost(Q):
+    def Cost(Q, current_a, current_M):
         q1 = Q[0]
         q2 = Q[1]
         q = quaternion.quaternion(1,q1,q2,0)
@@ -57,7 +54,7 @@ def fit_precessing_waveform(data_dir, offset, num_steps, num_modes=7,
         current_M = X["x"][-1]
         return X["cost"]
     T0 = np.array([0,0])
-    T = minimize(Cost, T0)
+    T = minimize(lambda Q :  Cost (Q, current_a, current_M) , T0, tol = num_steps*4)
     return T
 def global_parse_args():
     """
@@ -96,7 +93,7 @@ def global_parse_args():
         help="The resolution level of the data to be used to fit against  (0 to 6)",
         type=int,
         dest='resolution_level',
-        default=6
+        default=3
 
     )
     parser.add_argument(

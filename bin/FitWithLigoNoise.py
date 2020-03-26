@@ -22,7 +22,7 @@ def fit_qnm_modes_to_signal(data_dir, Yl2m2, offset, num_steps, num_modes=7,
                             sampling_routine=None, num_samples=None,
                             include_noise=False, plot_confidence_intervals=False,
                             plot_waveforms=True, target_spin=None,
-                            target_mass=None, save_name="GW", a_guess=None
+                            target_mass=None, save_name="GW", a_guess=None,
                             M_guess=None):
 
     start_and_end_frame = SetupData.get_frames_from_offset_and_steps(Yl2m2, offset, num_steps)
