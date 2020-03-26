@@ -19,7 +19,7 @@ def fit_precessing_waveform(data_dir, offset, num_steps, num_modes=7,
                             resolution_level=6, sampling_routine=None, num_samples=None,
                             include_noise=False, plot_confidence_intervals=False,
                             plot_waveforms=True, target_spin=None,
-                            target_mass=None, save_name="GW", a_guess=None
+                            target_mass=None, save_name="GW", a_guess=None,
                             M_guess=None):
 
     # We will tolerate both having and not having a `/` at the end of data_dir
@@ -158,21 +158,21 @@ def global_parse_args():
         type=str,
         dest='save_name',
         default="GW"
-    )
-     parser.add_argument(
+    ),
+    parser.add_argument(
         "--a-guess",
         help="If prior information is available about the spin, a guess can be entered of its magnitude",
         type=float,
         dest='a_guess',
         default=.6
-    )
+    ),
     parser.add_argument(
         "--M-guess",
-        help="A guess for the mass of the remnant black hole"
+        help="A guess for the mass of the remnant black hole",
         type=float,
         dest='M_guess',
         default=.95
-
+    )
     return parser.parse_args()
 if __name__ == "__main__":
     input_args = global_parse_args()
