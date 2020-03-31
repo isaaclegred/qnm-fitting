@@ -20,7 +20,7 @@ log = np.log
 # see the options below to see what options are available for the fitting.
 def fit_qnm_modes_to_signal(data_dir, Yl2m2, offset, num_steps, num_modes=7,
                             sampling_routine=None, num_samples=None,
-                            include_noise=False, plot_confidence_intervals=False,
+                            include_noise=True, plot_confidence_intervals=False,
                             plot_waveforms=True, output_data=False, target_spin=None,
                             target_mass=None, save_name="GW", a_guess=None,
                             M_guess=None):
@@ -78,9 +78,9 @@ def fit_qnm_modes_to_signal(data_dir, Yl2m2, offset, num_steps, num_modes=7,
     x0 = np.ones(numparams)
     x0[numparams - 2] = A
     x0[numparams - 1] = M
-    lowerbounds =  [-25]*(numparams -2)
+    lowerbounds =  [-50]*(numparams -2)
     lowerbounds  = lowerbounds + [0,0]
-    upperbounds  =  [25]*(numparams -2)
+    upperbounds  =  [50]*(numparams -2)
     upperbounds  = upperbounds + [.999, 1]
     # Actual fitting
     print("Fitting starting at time " + str(Yl2m2[start_frame, 0]) + " M")
