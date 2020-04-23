@@ -7,6 +7,8 @@ import spherical_functions
 from mpl_toolkits import mplot3d
 from matplotlib import animation
 import mpl_toolkits.mplot3d.axes3d as p3
+import FitWithLigoNoise
+import PlotCosts
 
 def get_waveform(data_dir):
     """
@@ -53,3 +55,27 @@ def animate_coprecessing_frame(h, save_name="prec_axis",  start_frame=1000,
                                        interval=1000, blit=False)
     line_ani.save(save_name + '.mp4', fps=50)
     plt.show()
+def get_fits_by_time(data_dir, Yl2m2, starts, num_steps, num_modes=7,
+                     inlcude_noise=True, spin=1):
+    "Return the result of fitting QNMs to the waveform in Yl2m2 with "
+    "starting times given by an array of integers starts, representing the "
+    "number of time steps after the peak strain to begin the fitting.  Fit for "
+    "num_steps time steps after the start.  Returns lists of the fit masses, spins,"
+    "and the matrix representing the quadratic term in the taylor series expansion around 
+    the minimum"
+    Masses = []
+    Spins = []
+    Delt = []
+    for start in starts:
+        X = FitWithLigoNoise.fit_qnm_modes_to_signal(data_dir,
+                                                     Yl2m2, int(start), 1000,
+                                                     num_modes, 
+                                                     include_noise, spin)
+    Masses.append(X["x"][-1])
+    Spins.append(X["x"][-2])
+    J = np.matrix(X['jac'])
+    D = np.transpose(J)*1/100*J
+    Delt.append(D)
+    plt.close('all')
+    
+    return Spins, Masses, Delt

@@ -13,8 +13,10 @@ imag = np.imag
 exp = np.exp
 from MinimizeGivenMa import *
 
-def plot_minimal_costs(Yl2m2_data, offset, num_steps,  a_bounds, M_bounds, a_steps=30, M_steps=30,
-                       target_a=None, target_M=None, num_modes=7, precessing=False, spin=1):
+def plot_minimal_costs(Yl2m2_data, offset, num_steps,  a_bounds,
+                       M_bounds, a_steps=30, M_steps=30,
+                       target_a=None, target_M=None, num_modes=7,
+                       precessing=False, spin=1):
     """
     Plot the "cost" associated with the best fit of the coefficients for
     values of a in a_bounds = (a_min, a_max), and M_bounds = (M_min, M_max)
@@ -25,7 +27,7 @@ def plot_minimal_costs(Yl2m2_data, offset, num_steps,  a_bounds, M_bounds, a_ste
     result = np.zeros((len(Avals), len(Mvals)))
     for i in range(len(Avals)):
         for j in range(len(Mvals)):
-            result[i,j] = best_linear_fit_cost(Yl2m2_data, Avals[i], Mvals[j], spin)
+            result[i,j] = best_linear_fit_cost(Yl2m2_data,offset, num_steps, Avals[i], Mvals[j], spin)
     plt.contourf(Mvals,Avals, np.log(result)/np.log(10), levels=60, extend = "both")
     if(target_a):
         plt.axhline(y=target_a, color='r', linestyle='-')
@@ -170,6 +172,7 @@ if __name__ == "__main__":
                                     "/rhOverM_Asymptotic_GeometricUnits_CoM.h5")
     a_bounds = (input_args.lower_a, input_args.upper_a)
     M_bounds = (input_args.lower_M, input_args.upper_M)
-    plot_minimal_costs(Yl2m2, input_args.offset, input_args.num_steps,  a_bounds, M_bounds, input_args.a_steps,
-                    input_args.M_steps, input_args.target_a, input_args.target_M,
+    plot_minimal_costs(Yl2m2, input_args.offset, input_args.num_steps,  a_bounds,
+                       M_bounds, input_args.a_steps,
+                       input_args.M_steps, input_args.target_a, input_args.target_M,
                        input_args.num_modes, input_args.precessing)

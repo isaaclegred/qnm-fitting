@@ -11,7 +11,7 @@
 #include <utility>
 #include <boost/python/list.hpp>
 #include <boost/python/extract.hpp>
-#include <iostream>
+
 
 #include "nr3devel.h"
 #include "sep_marquardt.hpp"
@@ -35,6 +35,20 @@ size_t get_size(const np::ndarray& A){
   auto shape = get_shape(A);
   return  std::accumulate(shape.begin(), shape.end(), 1, std::multiplies<>() );
 }
+/// Flatten a matrix with the column index varying the fastest
+std::vector<double> flatten_matrix (const MatDoub& C){
+  size_t r = C.nrows();
+  size_t c = C.ncols();
+  size_t num_elts = r*c;  
+  std::vector<double> flat_C(num_elts);
+  for (size_t i = 0; i < r; i++){
+    for (size_t j = 0; j < c; j++){
+      flat_C[i*c + j] = C[i][j];
+    }
+  }
+  return flat_C;
+}
+
 /// Get a std::vector<double> from a numpy array
 VecDoub get_vector_from_np(np::ndarray& A){
   VecDoub v(get_size(A));
@@ -80,16 +94,13 @@ varpro get_marquardt(np::ndarray& xxa, np::ndarray& yya,
 //                          get_vector_from_np(aaa),
 //                   f, pp);}
 
-BOOST_PYTHON_MODULE(mylib){
+BOOST_PYTHON_MODULE(NonGRFitting){
   /// get_marquardt should be implemented in an external .hpp file, and fitting_fun should be an
   /// an alias for the name of struct which contains a callable function as specified in
   /// `Sep_marquardt.hpp`
   bp::def("get_marquardt", +[](np::ndarray& xxa, np::ndarray& yya,
                                np::ndarray& ssiga, np::ndarray& aaa, const int pp,
                                    np::ndarray& params){
-                              auto times = get_vector_from_np(xxa);
-                              auto v = get_vector_from_np(xxa);
-                              std::cout << "gettting a marquardt" << "\n";
                               return get_marquardt(xxa, yya, ssiga, aaa,
                                                    fitting_fun(get_vector_from_np(params)),
                                                    pp);
@@ -135,7 +146,10 @@ BOOST_PYTHON_MODULE(mylib){
                              return get_np_from_vector(M.a);})
     .def("get_lin_params", +[](varpro& M) -> np::ndarray{
                               return get_np_from_vector(M.c);})
-    .def("get_chisq", +[](varpro& M){return M.chisq;});
+    .def("get_chisq", +[](varpro& M){ VecDoub v {M.chisq};
+	return get_np_from_vector(v);})
+    .def("get_covar", +[](varpro& M){MatDoub C = M.covar;
+	return get_np_from_vector(flatten_matrix(C));});
   bp::def("greet", +[](){
                       std::string s =  "hello";
                       const char* c = s.c_str();

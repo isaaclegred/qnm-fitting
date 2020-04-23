@@ -257,7 +257,7 @@ void SVD::decompose() {
 				}
 				break;
 			}
-			if (its == 29) throw("no convergence in 30 svdcmp iterations");
+			if (its == 49) throw("no convergence in 50 svdcmp iterations");
 			x=w[l];
 /*547613 2 3 3 3*/
 			nm=k-1;

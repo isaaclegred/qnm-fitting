@@ -11,15 +11,13 @@ cos = np.cos
 real = np.real
 imag = np.imag
 exp = np.exp
-def minimize_given_mass_and_spin(strain_data, A =.75, M = 1, num_modes = 7,
-                                spin=1):
+def minimize_given_mass_and_spin(strain_data, offset, num_steps,
+                                 A =.75, M = 1, num_modes = 7, spin=1):
     """
     Return the best fit  associated with fitting to the `strain_data`
     signal using a = `A` and M = `M`
     """
-    offset = 10
     max_frame, max_val=  SetupData.find_maxs(strain_data)
-    num_steps  = 500
     start_frame, end_frame = \
             SetupData.get_frames_from_offset_and_steps(strain_data,
                                                        offset,
@@ -65,10 +63,10 @@ def minimize_given_mass_and_spin(strain_data, A =.75, M = 1, num_modes = 7,
     x0 = np.ones(numparams)
     X = least_squares(Residuals, x0 , args=(signal, test_funcs, this_grid), gtol = 10**-15)
     return (X, test_funcs)
-def best_linear_fit_cost(strain_data, a = .75, m = 1, num_modes  = 7, spin=1):
+def best_linear_fit_cost(strain_data, offset, num_steps,  a = .75, m = 1, num_modes  = 7, spin=1):
     """
     Return the cost associated with the best fit to spin and mass.
     """
-    (X,test_funcs) = minimize_given_mass_and_spin(strain_data, A = a, M = m,
+    (X,test_funcs) = minimize_given_mass_and_spin(strain_data, offset, num_steps, A = a, M = m,
                                                   spin=1)
     return X["cost"]

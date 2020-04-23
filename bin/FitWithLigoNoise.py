@@ -5,7 +5,6 @@ from scipy.optimize import minimize, least_squares
 import qnm
 import numpy as np
 import matplotlib as mpl
-mpl.use('Agg')
 from matplotlib import pyplot as plt
 
 
@@ -23,7 +22,7 @@ def fit_qnm_modes_to_signal(data_dir, Yl2m2, offset, num_steps, num_modes=7,
                             include_noise=True, plot_confidence_intervals=False,
                             plot_waveforms=True, output_data=False, target_spin=None,
                             target_mass=None, save_name="GW", a_guess=None,
-                            M_guess=None):
+                            M_guess=None, spin=1):
 
     start_and_end_frame = SetupData.get_frames_from_offset_and_steps(Yl2m2, offset, num_steps)
     start_frame = start_and_end_frame[0]
@@ -58,29 +57,26 @@ def fit_qnm_modes_to_signal(data_dir, Yl2m2, offset, num_steps, num_modes=7,
                        subset_Yl2m2[:, 1]))
 
     if (include_noise):
-        noise = 100*SetupData.ligo_noise_stacked(data_dir, offset, num_steps, included_points,
-                                   True, 65)
-        print ("signal shape is", signal.shape)
-        print (" noise shape is",  noise.shape)
+        noise = 10*SetupData.ligo_noise_stacked(data_dir, offset, num_steps, included_points,True, 65)
         signal  += noise
     else:
-        noise = np.ones((len(included_points)))
+        noise = np.ones((signal.shape))
     # Fitting Procedure
     # Define residuals (the quantites which when squared and summed give the cost)
     def Residuals(x, noise,  params0, params2):
         target = params0
         grid = params2/x[numparams - 1]
-        trial = SetupTrial.construct_trial_from_grid(x, grid, num_modes, spin=1)
+        trial = SetupTrial.construct_trial_from_grid(x, grid, num_modes, spin)
         residuals = np.concatenate([target[0, :] - trial[0, :], target[1, :] - trial[1, :]])
         flattened_noise = np.concatenate([noise[0, :], noise[1, :]])
-        return residuals/flattened_noise
+        return residuals/np.mean(abs(flattened_noise))
     # Guesses for the individual parameters, we need to provide intelligent guesses for the mass and spin
     x0 = np.ones(numparams)
     x0[numparams - 2] = A
     x0[numparams - 1] = M
     lowerbounds =  [-50]*(numparams -2)
     lowerbounds  = lowerbounds + [0,0]
-    upperbounds  =  [50]*(numparams -2)
+    upperbounds  =  [300]*(numparams -2)
     upperbounds  = upperbounds + [.999, 1]
     # Actual fitting
     print("Fitting starting at time " + str(Yl2m2[start_frame, 0]) + " M")
@@ -247,6 +243,9 @@ def global_parse_args():
     )
     return parser.parse_args()
 if __name__ == "__main__":
+    # Assume the if the function is being called from the command line there is no plotting utility
+    # available.  
+    mpl.use("agg")
     input_args = global_parse_args()
     data_dir = input_args.data_dir
     resolution_level = input_args.resolution_level

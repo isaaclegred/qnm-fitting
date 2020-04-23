@@ -5,20 +5,22 @@ from matplotlib import pyplot as plt
 import matplotlib as mpl
 
 ksc = qnm.cached.KerrSeqCache(init_schw=False)
-def fit (a_and_M, found_freqs, num_modes):
+def cost_of_a_and_M (a_and_M, found_freqs, num_modes):
     freqs = []
     A = a_and_M[0]
     M  = a_and_M[1]
     for i in range(num_modes):
         mode_seq = ksc(s = -2, l = 2, m = 2, n = i)
         freq = mode_seq(a = A)[0]
-        freqs.append(3*(1-1/(i+1))**2*np.real(freq))
-        freqs.append(-3 *(1-1/(i+1))**2*np.imag(freq))
-    (np.array(freqs)).flatten()
-    return freqs - found_freqs
+        freqs.append(-np.imag(freq))
+        freqs.append(np.real(freq))
+    freqs = (np.array(freqs)).flatten()
+    freqs = freqs/M
+    weights = np.array([.001,.001, 1,1])
+    return (freqs - found_freqs)/weights
 
 
-def infer_a_and_m_from_freqs(decay_times_and_freqs):
+def infer_a_and_m_from_freqs(decay_times_and_freqs, Covariance = None):
     num_modes = int(len(decay_times_and_freqs)/2)
     sortable_freqs = []
     for i in range(num_modes):
@@ -29,7 +31,7 @@ def infer_a_and_m_from_freqs(decay_times_and_freqs):
     M_guess = .95
     guess = [a_guess, M_guess]
     Bounds = ([0,0], [.99999,1])
-    X = least_squares(lambda x : fit(x, useful_freqs, num_modes), guess, bounds = Bounds, )
+    X = least_squares(lambda x : cost_of_a_and_M(x, useful_freqs, num_modes), guess, bounds = Bounds, )
     return X
 if __name__ == "__main__":
-    print(infer_a_and_m_from_freqs(np.array([0.23524088, 0.64771748, 0.18619304, 0.42950507, 0.07782983, 0.55375245])))
+    print(infer_a_and_m_from_freqs(np.array([0.08438951, 0.55736911, 0.21861721, 0.51372357])))

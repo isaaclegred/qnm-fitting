@@ -1,1 +1,4 @@
-export PYTHONPATH=$PYTHONPATH:~/qnm-fitting/fitting
+export QNM_DIRECTORY=~/qnm-fitting
+export PYTHONPATH=$PYTHONPATH:$QNM_DIRECTORY/fitting
+export PYTHONPATH=$PYTHONPATH:$QNM_DIRECTOY/bin
+export PYTHONPATH=$PYTHONPATH:$QNM_DIRECTORY/src/Python/build

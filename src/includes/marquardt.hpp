@@ -38,7 +38,7 @@ struct Marquardt {
     VecDoub beta(mfit), betanew(mfit), da(mfit), anew(a);
     MatDoub alphanew(mfit, mfit);
     alpha.resize(mfit, mfit);
-    vec::print(a);
+    
     mrqcof(a, alpha, beta);
     ochisq = chisq;
     alphamax = 0.0;

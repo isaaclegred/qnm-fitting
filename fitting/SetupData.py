@@ -229,7 +229,7 @@ def ligo_noise_stacked(data_dir, offset, num_steps, included_points,
     error_source = max(Ligo_Noise[critical_freqs[0] : critical_freqs[1],
                                   1])
     error_source =  error_source**(1/2)*R
-    print(error_source)
+    
     noise  = 1/np.sqrt(2)*np.random.normal(0, scale=error_source, size=(2, len(included_points)))
     return noise
 def get_l_2_data(file_name):

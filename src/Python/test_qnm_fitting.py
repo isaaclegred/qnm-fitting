@@ -6,7 +6,7 @@ import qnm
 import numpy as np
 from matplotlib import pyplot as plt
 import matplotlib as mpl
-import mylib
+import NonGRFitting
 # Some useful definitons to shorten the code
 sin = np.sin
 cos = np.cos

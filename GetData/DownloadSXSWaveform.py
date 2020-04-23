@@ -37,7 +37,7 @@
 
 # Set which simulations will have their data downloaded
 
-Simulations  = ['SXS:BBH:1975']
+Simulations  = ['SXS:BBH:1157']
 
 # For downloading data
 import sxs
@@ -49,7 +49,11 @@ import numpy as np
 from matplotlib import pyplot as plt
 import json
 
-zen.download.matching("rhOverM_Asymptotic_GeometricUnits_CoM.h5", \
+# zen.download.matching("rhOverM_Asymptotic_GeometricUnits_CoM.h5", \
+#                       sxs_ids = Simulations, \
+#                       dry_run = False, \
+#                       highest_lev_only = False)
+zen.download.matching("metadata.txt", \
                       sxs_ids = Simulations, \
                       dry_run = False, \
                       highest_lev_only = False)

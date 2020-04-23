@@ -40,7 +40,7 @@ def construct_trial_from_grid(x, grid, nummodes = 7, spin = 1):
     trial waveform which will be used to compare to the signal data.
     """
     A = x[2*nummodes]
-    test_func = get_test_funcs(A, grid, nummodes)
+    test_func = get_test_funcs(A, grid, nummodes, spin)
     trial = np.zeros((2,len(test_func[0])) )
     for i in range(nummodes):
         trial += np.stack((x[2*i]*test_func[2*i] - x[2*i+1]*test_func[2*i+1],
